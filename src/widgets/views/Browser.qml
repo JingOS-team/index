@@ -1,6 +1,6 @@
 // Copyright 2018-2020 Camilo Higuita <milo.h@aol.com>
 // Copyright 2018-2020 Nitrux Latinoamericana S.C.
-//
+// Copyright 2021 Wangrui <Wangrui@jingos.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 
@@ -17,8 +17,7 @@ import org.maui.index 1.0 as Index
 import "../previewer"
 import ".."
 
-Item
-{
+Item{
     id: control
 
     readonly property int _index : ObjectModel.index
@@ -29,7 +28,6 @@ Item
     property alias title : _browser.title
 
     readonly property bool previewerVisible : _stackView.depth === 2
-    //    property bool terminalVisible : Maui.FM.loadSettings("TERMINAL", "EXTENSIONS", false) == "true"
     property bool terminalVisible : false
     readonly property bool supportsTerminal : terminalLoader.item
 
@@ -44,112 +42,97 @@ Item
 
     opacity: _splitView.currentIndex === _index ? 1 : 0.7
 
-    onCurrentPathChanged:
-    {
-        syncTerminal(currentBrowser.currentPath)
-
+    onCurrentPathChanged: {
+        if(currentBrowser)  {
+            syncTerminal(currentBrowser.currentPath)
+        }
         if(previewerVisible)
             _stackView.pop()
     }
 
-    Component
-    {
+    Component {
         id: _previewerComponent
 
-        FilePreviewer
-        {
+        FilePreviewer {
             model: _browser.currentFMModel
-            //            currentIndex: _browser.currentIndex
-            headBar.farLeftContent: ToolButton
-            {
-                icon.name: "go-previous"
-                onClicked:
-                {
-                    _stackView.pop(StackView.Immediate)
-                }
-            }
-
-            Component.onCompleted:
-            {
+            headBar.visible: false
+            footBar.visible: false
+            Component.onCompleted: {
                 listView.forceActiveFocus()
                 listView.currentIndex = Qt.binding(function() { return _browser.currentIndex })
             }
         }
     }
 
-    SplitView
-    {
+    SplitView {
         anchors.fill: parent
         anchors.bottomMargin: _selectionBar.visible && (terminalVisible | _stackView.depth == 2) ? _selectionBar.height : 0
         spacing: 0
         orientation: Qt.Vertical
 
-        handle: Rectangle
-        {
+        handle: Rectangle {
             implicitWidth: 6
             implicitHeight: 6
             color: SplitHandle.pressed ? Kirigami.Theme.highlightColor
                                        : (SplitHandle.hovered ? Qt.lighter(Kirigami.Theme.backgroundColor, 1.1) : Kirigami.Theme.backgroundColor)
 
-            Rectangle
-            {
+            Rectangle {
                 anchors.centerIn: parent
                 width: 48
                 height: parent.height
                 color: _splitSeparator.color
             }
 
-            Kirigami.Separator
-            {
+            Kirigami.Separator {
                 id: _splitSeparator
                 anchors.bottom: parent.bottom
                 anchors.right: parent.right
                 anchors.left: parent.left
             }
 
-            Kirigami.Separator
-            {
+            Kirigami.Separator {
                 anchors.top: parent.top
                 anchors.right: parent.right
                 anchors.left: parent.left
             }
         }
 
-        StackView
-        {
+        StackView {
             id: _stackView
 
             SplitView.fillWidth: true
             SplitView.fillHeight: true
 
-            initialItem: Maui.FileBrowser
-            {
+            initialItem: FileBroswerView {
                 id: _browser
 
                 headerBackground.color: "transparent"
 
                 selectionBar: root.selectionBar
-                gridItemSize: switch(appSettings.gridSize)
-                              {
-                              case 0: return Math.floor(48 * 1.5);
-                              case 1: return Math.floor(64 * 1.5);
-                              case 2: return Math.floor(96 * 1.5);
-                              case 3: return Math.floor(124 * 1.5);
-                              default: return Math.floor(96 * 1.5);
-                              }
+                gridItemSize:  {
+                    switch(appSettings.gridSize)
+                    {
+                    case 0: return Math.floor(48 * 1.5);
+                    case 1: return Math.floor(64 * 1.5);
+                    case 2: return Math.floor(80 * 1.5);
+                    case 3: return Math.floor(124 * 1.5);
+                    default: return Math.floor(96 * 1.5);
+                    }
+                }
 
-                listItemSize:   switch(appSettings.listSize)
-                                {
-                                case 0: return 32;
-                                case 1: return 48;
-                                case 2: return 64;
-                                case 3: return 96;
-                                default: return 96;
-                                }
+                listItemSize:    {
+                    switch(appSettings.listSize)  {
+                    case 0: return 32;
+                    case 1: return 48;
+                    case 2: return 64;
+                    case 3: return 96;
+                    default: return 96;
+                    }
+                }
 
                 selectionMode: root.selectionMode
-                onSelectionModeChanged:
-                {
+
+                onSelectionModeChanged:  {
                     root.selectionMode = selectionMode
                     selectionMode = Qt.binding(function() { return root.selectionMode })
                 } // rebind this property in case filebrowser breaks it
@@ -158,10 +141,10 @@ Item
                 settings.showThumbnails: appSettings.showThumbnails
                 settings.foldersFirst: sortSettings.globalSorting ? sortSettings.foldersFirst : true
                 settings.sortBy: sortSettings.sortBy
+                settings.sortOrder: sortSettings.sortOrder
                 settings.group: sortSettings.group
 
-                Binding
-                {
+                Binding {
                     target: _browser.settings
                     property: "sortBy"
                     when: sortSettings.globalSorting
@@ -169,8 +152,15 @@ Item
                     restoreMode: Binding.RestoreBindingOrValue
                 }
 
-                Binding
-                {
+                Binding {
+                    target: _browser.settings
+                    property: "sortOrder"
+                    when: sortSettings.globalSorting
+                    value: sortSettings.sortOrder
+                    restoreMode: Binding.RestoreBindingOrValue
+                }
+
+                Binding {
                     target: _browser.settings
                     property: "group"
                     when: sortSettings.globalSorting
@@ -178,8 +168,7 @@ Item
                     restoreMode: Binding.RestoreBindingOrValue
                 }
 
-                Rectangle
-                {
+                Rectangle {
                     anchors.bottom: parent.bottom
                     anchors.left: parent.left
                     anchors.right: parent.right
@@ -188,133 +177,6 @@ Item
                     color: Kirigami.Theme.highlightColor
                     visible: _splitView.currentIndex === _index && _splitView.count === 2
                 }
-
-                browserMenu.contentData : [
-                    MenuItem
-                    {
-                        visible: !control.isExec && Maui.Handy.isLinux
-                        text: i18n("Open terminal here")
-                        id: openTerminal
-                        icon.name: "utilities-terminal"
-                        onTriggered:
-                        {
-                            inx.openTerminal(currentPath)
-                        }
-                    }
-                ]
-
-                itemMenu.contentData : [
-
-                    MenuItem
-                    {
-                        visible: !control.isExec
-                        text: i18n("Share")
-                        icon.name: "document-share"
-                        onTriggered:
-                        {
-                            shareFiles([_browser.itemMenu.item.path])
-                        }
-                    },
-
-                    MenuItem
-                    {
-                        visible: !control.isExec && tagsDialog
-                        text: i18n("Tags")
-                        icon.name: "tag"
-                        onTriggered:
-                        {
-                            tagsDialog.composerList.urls = [_browser.itemMenu.item.path]
-                            tagsDialog.open()
-                        }
-                    },
-
-                    MenuSeparator {visible: _browser.itemMenu.isDir},
-
-                    MenuItem
-                    {
-                        visible: _browser.itemMenu.isDir
-                        text: i18n("Open in new tab")
-                        icon.name: "tab-new"
-                        onTriggered: root.openTab(_browser.itemMenu.item.path)
-                    },
-
-                    MenuItem
-                    {
-                        visible: _browser.itemMenu.isDir && root.currentTab.count === 1 && appSettings.supportSplit
-                        text: i18n("Open in split view")
-                        icon.name: "view-split-left-right"
-                        onTriggered: root.currentTab.split(_browser.itemMenu.item.path, Qt.Horizontal)
-                    },
-
-                    MenuItem
-                    {
-                        visible: !control.isExec && Maui.Handy.isLinux
-                        text: i18n("Open terminal here")
-                        icon.name: "utilities-terminal"
-                        onTriggered:
-                        {
-                            inx.openTerminal(_browser.itemMenu.item.path)
-                        }
-                    },
-
-                    MenuSeparator {},
-
-                    MenuItem
-                    {
-                        visible: !_browser.itemMenu.isExec
-                        text: i18n("Preview")
-                        icon.name: "view-preview"
-                        onTriggered:
-                        {
-                            //                        previewer.show(_browser.currentFMModel, _browser.currentView.currentIndex)
-                            _stackView.push(_previewerComponent, StackView.Immediate)
-                        }
-                    },
-
-                    MenuSeparator {},
-
-                    MenuItem
-                    {
-                        visible: Maui.FM.checkFileType(Maui.FMList.COMPRESSED, _browser.itemMenu.item.mime)
-                        text: i18n("Extract")
-                        icon.name: "archive-extract"
-                        onTriggered:
-                        {
-                            _compressedFile.url = _browser.itemMenu.item.path
-                            dialogLoader.sourceComponent= _extractDialogComponent
-                            dialog.open()
-                        }
-                    },
-
-                    MenuItem
-                    {
-                        visible: true
-                        text: i18n("Compress")
-
-                        icon.name: "archive-insert"
-                        onTriggered:
-                        {
-                            dialogLoader.sourceComponent= _compressDialogComponent
-                            dialog.urls = currentBrowser.filterSelection(currentPath, currentBrowser.itemMenu.item.path)
-                            dialog.open()
-                        }
-                    },
-
-                    MenuSeparator{ visible: colorBar.visible },
-
-                    MenuItem
-                    {
-                        height: visible ? Maui.Style.iconSizes.medium + Maui.Style.space.big : 0
-                        visible: _browser.itemMenu.isDir
-                        ColorsBar
-                        {
-                            id: colorBar
-                            anchors.centerIn: parent
-                            size: Maui.Style.iconSizes.medium
-                            onColorPicked: _browser.currentFMList.setDirIcon(_browser.itemMenu.index, color)
-                        }
-                    }
-                ]
 
                 Connections
                 {
@@ -326,21 +188,13 @@ Item
                     }
                 }
 
-                MouseArea
-                {
-                    anchors.fill: parent
-                    propagateComposedEvents: true
-                    //        hoverEnabled: true
-                    //        onEntered: _splitView.currentIndex = control.index
-                    onPressed:
-                    {
-                        _splitView.currentIndex = control._index
-                        mouse.accepted = false
-                    }
-                }
-
                 onKeyPress:
                 {
+                    if (event.key == Qt.Key_Forward)
+                    {
+                        _browser.goForward()
+                    }
+
                     if((event.key == Qt.Key_T) && (event.modifiers & Qt.ControlModifier))
                     {
                         openTab(control.currentPath)
@@ -377,28 +231,61 @@ Item
                     {
                         _stackView.push(_previewerComponent, StackView.Immediate)
                     }
+
+                    if(event.button === Qt.BackButton)
+                    {
+                        _browser.goBack()
+                    }
+
+                    //@gadominguez At this moment this function doesnt work because goForward not exist
+                    if(event.button === Qt.ForwardButton)
+                    {
+                        _browser.goForward()
+                    }
+
                 }
 
                 onItemClicked:
                 {
-                    const item = currentFMList.get(index)
+                    const item = currentFMModel.get(index)
 
-                    if(appSettings.singleClick)
+                    if(root.selectionMode)
                     {
-                        if(appSettings.previewFiles && item.isdir != "true" && !root.selectionMode)
+                        addToSelection(item, index)
+                    }else
+                    {
+                        if(appSettings.singleClick)
                         {
-                            _stackView.push(_previewerComponent, StackView.Immediate)
-                            return
+                            if(appSettings.previewFiles && item.isdir != "true" && !root.selectionMode)
+                            {
+                                if(item.mime.indexOf("video") != -1)
+                                {
+                                    leftMenuData.playVideo(item.path.toString())
+                                }
+                                else if(Maui.FM.checkFileType(Maui.FMList.IMAGE, item.mime))//图片直接预览
+                                {
+                                    root.imageIndex = index
+                                    root.showImageViewer(item)
+                                    leftMenuData.addFileToRecents(item.path.toString());
+                                }else if((item.mime.indexOf("audio") != -1)
+                                || Maui.FM.checkFileType(Maui.FMList.TEXT, item.mime))
+                                {
+                                     root.imageIndex = index
+                                    _stackView.push(_previewerComponent, StackView.Immediate)
+                                }else
+                                {
+                                    root.openWith(item)
+                                }
+                                return
+                            }
+                            openItem(index)
                         }
-
-                        openItem(index)
-                    }
+                    } 
                 }
 
                 onItemDoubleClicked:
                 {
-                    const item = currentFMList.get(index)
-
+                    const item = currentFMModel.get(index)
                     if(!appSettings.singleClick)
                     {
                         if(appSettings.previewFiles && item.isdir != "true" && !root.selectionMode)
@@ -406,7 +293,6 @@ Item
                             _stackView.push(_previewerComponent)
                             return
                         }
-
                         openItem(index)
                     }
                 }
@@ -439,25 +325,10 @@ Item
         onClicked: _splitView.currentIndex = _index
     }
 
-    MenuItem
-    {
-        visible: !control.isExec
-        id: openWithMenuItem
-        text: i18n("Open with")
-        icon.name: "document-open"
-        onTriggered:
-        {
-            openWith([_browser.itemMenu.item.path])
-        }
-    }
-
     Component.onCompleted:
     {
-        _browser.itemMenu.insertItem(1, openWithMenuItem)
         syncTerminal(control.currentPath)
     }
-
-    Component.onDestruction: console.log("Destroyed browsers!!!!!!!!")
 
     function syncTerminal(path)
     {
@@ -468,7 +339,11 @@ Item
     function toogleTerminal()
     {
         terminalVisible = !terminalVisible
-        //        Maui.FM.saveSettings("TERMINAL", terminalVisible, "EXTENSIONS")
     }
 
+    function popPreviewer()
+    {
+        if(previewerVisible)
+            _stackView.pop()
+    }
 }

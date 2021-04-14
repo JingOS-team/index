@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: (C) 2021 Wangrui <Wangrui@jingos.com>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 import QtQuick 2.14
 import QtQml 2.14
 import QtQuick.Controls 2.14
@@ -5,8 +10,7 @@ import QtQuick.Layouts 1.3
 import org.kde.kirigami 2.7 as Kirigami
 import org.kde.mauikit 1.2 as Maui
 
-Maui.Page
-{
+Maui.Page{
     id: control
 
     property url currentUrl: ""
@@ -18,22 +22,13 @@ Maui.Page
     property bool isFav : false
     property bool isDir : false
     property bool showInfo: true
+    property int type : 0
 
-    property alias tagBar : _tagsBar
-
-    title: _listView.currentItem.title
-
-    headerBackground.color: "transparent"
-    headBar.rightContent: ToolButton
-    {
-        icon.name: "documentinfo"
-        checkable: true
-        checked: control.showInfo
-        onClicked: control.showInfo = !control.showInfo
+    background: Rectangle {
+        color: "#00000000"
     }
 
-    ListView
-    {
+    ListView {
         id: _listView
         anchors.fill: parent
         orientation: ListView.Horizontal
@@ -41,7 +36,7 @@ Maui.Page
         clip: true
         focus: true
         spacing: 0
-        interactive: Maui.Handy.isTouch
+        interactive: false
         highlightFollowsCurrentItem: true
         highlightMoveDuration: 0
         highlightResizeDuration : 0
@@ -49,10 +44,8 @@ Maui.Page
         cacheBuffer: width
         keyNavigationEnabled : true
         keyNavigationWraps : true
-        onMovementEnded: currentIndex = indexAt(contentX, contentY)
 
-        delegate: Item
-        {
+        delegate: Item  {
             id: _delegate
 
             height: ListView.view.height
@@ -64,8 +57,7 @@ Maui.Page
             property alias infoModel : _infoModel
             readonly property string title: model.label
 
-            Loader
-            {
+            Loader  {
                 id: previewLoader
                 active: _delegate.isCurrentItem
                 visible: !control.showInfo
@@ -74,8 +66,7 @@ Maui.Page
                 onActiveChanged: if(active) show(currentUrl)
             }
 
-            Kirigami.ScrollablePage
-            {
+            Kirigami.ScrollablePage {
                 id: _infoContent
                 anchors.fill: parent
                 visible: control.showInfo
@@ -87,13 +78,11 @@ Maui.Page
                 topPadding: padding
                 bottomPadding: padding
 
-                ColumnLayout
-                {
+                ColumnLayout {
                     width: parent.width
                     spacing: 0
 
-                    Item
-                    {
+                    Item {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 100
 
@@ -106,24 +95,19 @@ Maui.Page
                         }
                     }
 
-                    Maui.Separator
-                    {
-                        position: Qt.Horizontal
+                    Maui.Separator {
                         Layout.fillWidth: true
                     }
 
-                    Repeater
-                    {
+                    Repeater {
                         model: ListModel { id: _infoModel }
-                        delegate: Maui.AlternateListItem
-                        {
+                        delegate: Maui.AlternateListItem {
                             visible: model.value
                             Layout.preferredHeight: visible ? _delegateColumnInfo.label1.implicitHeight + _delegateColumnInfo.label2.implicitHeight + Maui.Style.space.large : 0
                             Layout.fillWidth: true
                             lastOne: index === _infoModel.count-1
 
-                            Maui.ListItemTemplate
-                            {
+                            Maui.ListItemTemplate {
                                 id: _delegateColumnInfo
 
                                 iconSource: "documentinfo"
@@ -145,49 +129,41 @@ Maui.Page
                 }
             }
 
-            function show(path)
-            {
+            function show(path) {
                 console.log("Init model for ", path, previewLoader.active, _delegate.isCurrentItem)
+
+                leftMenuData.addFileToRecents(path.toString());
+
                 initModel()
 
                 control.isDir = model.isdir == "true"
                 control.currentUrl = path
-                control.isFav =  _tagsBar.list.contains("fav")
+                root.currentTitle = iteminfo.label
 
                 var source = "DefaultPreview.qml"
-                if(Maui.FM.checkFileType(Maui.FMList.AUDIO, iteminfo.mime))
-                {
+                if(iteminfo.mime.indexOf("audio") != -1) {
                     source = "AudioPreview.qml"
-                }else if(Maui.FM.checkFileType(Maui.FMList.VIDEO, iteminfo.mime))
-                {
+                    type = 1
+                }else if(Maui.FM.checkFileType(Maui.FMList.VIDEO, iteminfo.mime)) {
                     source = "VideoPreview.qml"
-                }else if(Maui.FM.checkFileType(Maui.FMList.TEXT, iteminfo.mime))
-                {
+                }else if(Maui.FM.checkFileType(Maui.FMList.TEXT, iteminfo.mime)) {
                     source = "TextPreview.qml"
-                }else if(Maui.FM.checkFileType(Maui.FMList.IMAGE, iteminfo.mime))
-                {
+                }else if(Maui.FM.checkFileType(Maui.FMList.IMAGE, iteminfo.mime)) {
                     source = "ImagePreview.qml"
-                }else if(Maui.FM.checkFileType(Maui.FMList.DOCUMENT, iteminfo.mime))
-                {
+                }else if(Maui.FM.checkFileType(Maui.FMList.DOCUMENT, iteminfo.mime)) {
                     source = "DocumentPreview.qml"
-                }else if(Maui.FM.checkFileType(Maui.FMList.COMPRESSED, iteminfo.mime))
-                {
+                }else if(Maui.FM.checkFileType(Maui.FMList.COMPRESSED, iteminfo.mime)) {
                     source = "CompressedPreview.qml"
-                }else if(Maui.FM.checkFileType(Maui.FMList.FONT, iteminfo.mime))
-                {
+                }else if(Maui.FM.checkFileType(Maui.FMList.FONT, iteminfo.mime)) {
                     source = "FontPreviewer.qml"
-                }else
-                {
+                }else {
                     source = "DefaultPreview.qml"
                 }
-
-                console.log("previe mime", iteminfo.mime)
                 previewLoader.source = source
                 control.showInfo = source === "DefaultPreview.qml"
             }
 
-            function initModel()
-            {
+            function initModel() {
                 infoModel.clear()
                 infoModel.append({key: "Type", value: iteminfo.mime})
                 infoModel.append({key: "Date", value: Qt.formatDateTime(new Date(model.date), "d MMM yyyy")})
@@ -205,103 +181,12 @@ Maui.Page
     }
 
     footerColumn: [
-        Maui.TagsBar
-        {
-            id: _tagsBar
-            position: ToolBar.Footer
+        Maui.ToolBar {
             width: parent.width
-            list.urls: [control.currentUrl]
-            list.strict: false
-            allowEditMode: true
-            onTagRemovedClicked: list.removeFromUrls(index)
-            onTagsEdited: list.updateToUrls(tags)
-            Kirigami.Theme.textColor: control.Kirigami.Theme.textColor
-            Kirigami.Theme.backgroundColor: control.Kirigami.Theme.backgroundColor
-
-            onAddClicked:
-            {
-                tagsDialog.composerList.urls = [ previewer.currentUrl]
-                tagsDialog.open()
-            }
-        },
-
-        Maui.ToolBar
-        {
-            width: parent.width
+            height: 1
             position: ToolBar.Bottom
             background: null
-            leftContent: Maui.ToolActions
-            {
-                expanded: true
-                autoExclusive: false
-                checkable: false
-
-                Action
-                {
-                    text: i18n("Previous")
-                    icon.name: "go-previous"
-                    onTriggered :  _listView.decrementCurrentIndex()
-                }
-
-                Action
-                {
-                    text: i18n("Next")
-                    icon.name: "go-next"
-                    onTriggered: _listView.incrementCurrentIndex()
-                }
-            }
-
-           rightContent: [
-                ToolButton
-                {
-                    icon.name: "document-open"
-                    onClicked:
-                    {
-                        currentBrowser.openFile(control.currentUrl)
-                    }
-                },
-
-                ToolButton
-                {
-                    icon.name: "love"
-                    checkable: true
-                    checked: control.isFav
-                    onClicked:
-                    {
-                        if(control.isFav)
-                            _tagsBar.list.removeFromUrls("fav")
-                        else
-                            _tagsBar.list.insertToUrls("fav")
-
-                        control.isFav = !control.isFav
-                    }
-                },
-
-                ToolButton
-                {
-                    visible: !isDir
-                    icon.name: "document-share"
-                    onClicked:
-                    {
-                        Maui.Platform.shareFiles([control.currentUrl])
-                    }
-                }
-            ]
+            visible: true
         }
-
        ]
-
-
-    Connections
-    {
-        target: tagsDialog
-        enabled: tagsDialog
-        ignoreUnknownSignals: true
-
-        function onTagsReady(tags)
-        {
-            tagsDialog.composerList.updateToUrls(tags)
-            tagBar.list.refresh()
-        }
-    }
 }

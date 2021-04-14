@@ -10,8 +10,7 @@ import QtQuick.Layouts 1.3
 import org.kde.mauikit 1.2 as Maui
 import org.kde.kirigami 2.6 as Kirigami
 
-Maui.SideBar
-{
+Maui.SideBar {
     id: control
 
     property alias list : placesList
@@ -22,17 +21,14 @@ Maui.SideBar
     collapsed : !root.isWide
     preferredWidth: Math.min(Kirigami.Units.gridUnit * (Maui.Handy.isWindows ?  15 : 11), root.width)
 
-    onPlaceClicked:
-    {
+    onPlaceClicked: {
         currentBrowser.openFolder(path)
         if(placesSidebar.collapsed)
             placesSidebar.collapse()
     }
 
-    model: Maui.BaseModel
-    {
-        list: Maui.PlacesList
-        {
+    model: Maui.BaseModel {
+        list: Maui.PlacesList {
             id: placesList
 
             groups: [
@@ -42,41 +38,37 @@ Maui.SideBar
                     Maui.FMList.REMOVABLE_PATH,
                     Maui.FMList.DRIVES_PATH]
 
-            onBookmarksChanged:
-            {
+            onBookmarksChanged:{
                 syncSidebar(currentPath)
             }
         }
     }
 
-    delegate: Maui.ListDelegate
-    {
+    delegate: Maui.ListDelegate {
         id: itemDelegate
         width: ListView.view.width
         iconSize: Maui.Style.iconSizes.small
-        label: model.label
+        label: model.label + "123"
         count: model.count > 0 ? model.count : ""
         iconName: model.icon +  (Qt.platform.os == "android" || Qt.platform.os == "osx" ? ("-sidebar") : "")
         iconVisible: true
 
-        onClicked:
-        {
+        onClicked: {
             control.currentIndex = index
             placesList.clearBadgeCount(index)
 
             placeClicked(model.path)
+            console.log("model.path == ", model.path)
             if(control.collapsed)
                 control.close()
         }
 
-        onRightClicked:
-        {
+        onRightClicked: {
             control.currentIndex = index
             _menu.popup()
         }
 
-        onPressAndHold:
-        {
+        onPressAndHold: {
             control.currentIndex = index
             _menu.popup()
         }
@@ -84,8 +76,7 @@ Maui.SideBar
 
     section.property: "type"
     section.criteria: ViewSection.FullString
-    section.delegate: Maui.LabelDelegate
-    {
+    section.delegate: Maui.LabelDelegate {
         id: delegate
         width: control.width
         label: section
@@ -94,24 +85,20 @@ Maui.SideBar
         height: Maui.Style.toolBarHeightAlt
     }
 
-    onContentDropped:
-    {
+    onContentDropped: {
         placesList.addPlace(drop.text)
     }
 
-    Menu
-    {
+    Menu {
         id: _menu
 
-        MenuItem
-        {
+        MenuItem {
             text: i18n("Open in new tab")
             icon.name: "tab-new"
             onTriggered: openTab(control.model.get(placesSidebar.currentIndex).path)
         }
 
-        MenuItem
-        {
+        MenuItem {
             visible: root.currentTab.count === 1 && settings.supportSplit
             text: i18n("Open in split view")
             icon.name: "view-split-left-right"
@@ -120,8 +107,7 @@ Maui.SideBar
 
         MenuSeparator{}
 
-        MenuItem
-        {
+        MenuItem {
             text: i18n("Remove")
             Kirigami.Theme.textColor: Kirigami.Theme.negativeTextColor
             onTriggered: list.removePlace(control.currentIndex)

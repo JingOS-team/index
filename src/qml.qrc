@@ -9,12 +9,153 @@
         <file>widgets/previewer/DefaultPreview.qml</file>
         <file>widgets/previewer/DocumentPreview.qml</file>
         <file>widgets/previewer/FilePreviewer.qml</file>
+        <file>widgets/previewer/FileInfo.qml</file>
         <file>widgets/previewer/ImagePreview.qml</file>
+        <file>widgets/previewer/ImageViewer.qml</file>
+        <file>widgets/previewer/Header.qml</file>
         <file>widgets/previewer/TextPreview.qml</file>
         <file>widgets/previewer/VideoPreview.qml</file>
         <file>widgets/previewer/AudioPreview.qml</file>
         <file>widgets/previewer/CompressedPreview.qml</file>
         <file>widgets/previewer/FontPreviewer.qml</file>
         <file>widgets/ColorsBar.qml</file>
+        <file>LeftMenu.qml</file>
+        <file>assets/files.png</file>
+        <file>assets/back_arrow.png</file>
+        <file>assets/cancel_enable.png</file>
+        <file>assets/right_arrow.png</file>
+        <file>assets/index_new.svg</file>
+        <file>assets/image_back.png</file>
+
+        <file>assets/nextTrack.png</file>
+        <file>assets/play.png</file>
+        <file>assets/pause.png</file>
+        <file>assets/previousTrack.png</file>
+
+        <file>assets/unselect_rect.png</file>
+        <file>assets/unselect_copy.png</file>
+        <file>assets/unselect_cut.png</file>
+        <file>assets/unselect_delete.png</file>
+        <file>assets/unselect_unzip.png</file>
+        <file>assets/unselect_zip.png</file>
+        <file>assets/unselect_tag.png</file>
+        <file>assets/unselect_fav.png</file>
+        <file>assets/unselect_recover.png</file>
+        <file>assets/unselect_delete_all.png</file>
+        
+        <file>assets/select_rect.png</file>
+        <file>assets/select_copy.png</file>
+        <file>assets/select_cut.png</file>
+        <file>assets/select_delete.png</file>
+        <file>assets/select_unzip.png</file>
+        <file>assets/select_zip.png</file>
+        <file>assets/select_tag.png</file>
+        <file>assets/select_fav.png</file>
+        <file>assets/select_recover.png</file>
+        <file>assets/select_delete_all.png</file>
+
+        <file>assets/select_all.png</file>
+        <file>assets/folder_icon.png</file>
+        <file>assets/add_folder.png</file>
+        <file>assets/menu_grid.png</file>
+        <file>assets/menu_list.png</file>
+        <file>assets/search_icon.png</file>
+
+        <file>assets/arrow_down.png</file>
+        <file>assets/arrow_up.png</file>
+        <file>assets/view_select.png</file>
+        <file>assets/grid_icon.png</file>
+        <file>assets/list_icon.png</file>
+        <file>assets/order_by_date.png</file>
+        <file>assets/order_by_kind.png</file>
+        <file>assets/order_by_name.png</file>
+        <file>assets/order_by_size.png</file>
+        <file>assets/order_by_tag.png</file>
+
+        <file>assets/ppt.png</file>
+        <file>assets/zip.png</file>
+        <file>assets/7zip.png</file>
+        <file>assets/rar.png</file>
+        <file>assets/tar.png</file>
+        <file>assets/word.png</file>
+        <file>assets/music.png</file>
+        <file>assets/empty.png</file>
+        <file>assets/excel.png</file>
+        <file>assets/default.png</file>
+        <file>assets/image_default.png</file>
+        <file>assets/video_default.png</file>
+        
+        <file>assets/leftmenu/downArrow.png</file>
+        <file>assets/leftmenu/upArrow.png</file>
+        <file>assets/leftmenu/documentSelect.png</file>
+        <file>assets/leftmenu/documentUnselect.png</file>
+        <file>assets/leftmenu/downloadSelect.png</file>
+        <file>assets/leftmenu/downloadUnselect.png</file>
+        <file>assets/leftmenu/folderSelect.png</file>
+        <file>assets/leftmenu/folderUnselect.png</file>
+        <file>assets/leftmenu/jingosSelect.png</file>
+        <file>assets/leftmenu/jingosUnselect.png</file>
+        <file>assets/leftmenu/mediaSelect.png</file>
+        <file>assets/leftmenu/mediaUnselect.png</file>
+        <file>assets/leftmenu/onMyPadSelect.png</file>
+        <file>assets/leftmenu/onMyPadUnselect.png</file>
+        <file>assets/leftmenu/otherSelect.png</file>
+        <file>assets/leftmenu/otherUnselect.png</file>
+        <file>assets/leftmenu/picSelect.png</file>
+        <file>assets/leftmenu/picUnselect.png</file>
+        <file>assets/leftmenu/recentsSelect.png</file>
+        <file>assets/leftmenu/recentsUnselect.png</file>
+        <file>assets/leftmenu/trashSelect.png</file>
+        <file>assets/leftmenu/trashUnselect.png</file>
+        <file>assets/leftmenu/usbSelect.png</file>
+        <file>assets/leftmenu/usbUnselect.png</file>
+        <file>assets/leftmenu/videoSelect.png</file>
+        <file>assets/leftmenu/videoUnselect.png</file>
+        <file>assets/leftmenu/musicSelect.png</file>
+        <file>assets/leftmenu/musicUnselect.png</file>
+        <file>assets/leftmenu/tagImportant.png</file>
+        <file>assets/leftmenu/tagLife.png</file>
+        <file>assets/leftmenu/tagTemporary.png</file>
+        <file>assets/leftmenu/tagWork.png</file>
+        <file>assets/leftmenu/tagMeeting.png</file>
+        <file>assets/leftmenu/tagFile.png</file>
+        <file>assets/leftmenu/tagPicture.png</file>
+        <file>assets/leftmenu/tagPrivate.png</file>
+
+        <file>assets/popupmenu/bat_edit.png</file>
+        <file>assets/popupmenu/open_mode.png</file>
+        <file>assets/popupmenu/copy.png</file>
+        <file>assets/popupmenu/cut.png</file>
+        <file>assets/popupmenu/delete.png</file>
+        <file>assets/popupmenu/rename.png</file>
+        <file>assets/popupmenu/info.png</file>
+        <file>assets/popupmenu/tags.png</file>
+        <file>assets/popupmenu/zip.png</file>
+        <file>assets/popupmenu/unzip.png</file>
+        <file>assets/popupmenu/fav.png</file>
+        <file>assets/popupmenu/paste.png</file>
+        <file>assets/popupmenu/delete_all.png</file>
+        <file>assets/popupmenu/recover.png</file>
+        
+
+        <file>widgets/views/BrowserHolder.qml</file>
+        <file>widgets/views/BrowserItem.qml</file>
+        <file>widgets/views/BrowserMenu.qml</file>
+        <file>widgets/views/BrowserSettings.qml</file>
+        <file>widgets/views/BrowserView.qml</file>
+        <file>widgets/views/FileBroswerView.qml</file>
+        <file>widgets/views/FileMenu.qml</file>
+        <file>widgets/views/FolderMenu.qml</file>
+        <file>widgets/views/ZipFileMenu.qml</file>
+        <file>widgets/views/UnzipFileMenu.qml</file>
+        <file>widgets/views/ZipFileMenuWithoutOM.qml</file>
+        <file>widgets/views/UnzipFileMenuWithoutOM.qml</file>
+        <file>widgets/views/TrashFileMenu.qml</file>
+        <file>widgets/views/TrashNormalMenu.qml</file>
+        <file>widgets/views/ListViewDelegate.qml</file>
+        <file>widgets/views/ListBrowser.qml</file>
+        <file>widgets/views/GrideBrowser.qml</file>
+        <file>widgets/views/GridDelegate.qml</file>
+        <file>widgets/views/CustomPopup.qml</file>
     </qresource>
 </RCC>

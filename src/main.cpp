@@ -1,19 +1,20 @@
 // Copyright 2018-2020 Camilo Higuita <milo.h@aol.com>
+// Copyright 2020 Wang Rui <wangrui@jingos.com>
 // Copyright 2018-2020 Nitrux Latinoamericana S.C.
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
+#include <QCommandLineParser>
+#include <QIcon>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include <QIcon>
-#include <QCommandLineParser>
 
 #include <KAboutData>
 
 #include "index.h"
 
 #ifdef Q_OS_ANDROID
-#include <QGuiApplication>
 #include "mauiandroid.h"
+#include <QGuiApplication>
 #else
 #include <QApplication>
 #endif
@@ -34,6 +35,8 @@
 
 #include "controllers/compressedfile.h"
 #include "controllers/filepreviewer.h"
+
+#include "models/left_menu/leftmenudata.h"
 
 #define INDEX_URI "org.maui.index"
 
@@ -57,19 +60,18 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 #endif
 
     app.setOrganizationName(QStringLiteral("Maui"));
-    app.setWindowIcon(QIcon(":/index.png"));
-    MauiApp::instance()->setHandleAccounts(false); //for now index can not handle cloud accounts
-    MauiApp::instance()->setIconName("qrc:/assets/index.svg");
+    app.setWindowIcon(QIcon(":/zip.png"));
+    MauiApp::instance()->setHandleAccounts(false); // for now index can not handle cloud accounts
+    MauiApp::instance()->setIconName("qrc:/assets/index_new.svg");
 
     KLocalizedString::setApplicationDomain("index");
-    KAboutData about(QStringLiteral("index"), i18n("Index"), INDEX_VERSION_STRING, i18n("Index allows you to navigate your computer and preview multimedia files."),
-                     KAboutLicense::LGPL_V3, i18n("© 2019-2020 Nitrux Development Team"));
+    KAboutData about(QStringLiteral("index"), i18n("Index"), INDEX_VERSION_STRING, i18n("Index allows you to navigate your computer and preview multimedia files."), KAboutLicense::LGPL_V3, i18n("© 2019-2020 Nitrux Development Team"));
     about.addAuthor(i18n("Camilo Higuita"), i18n("Developer"), QStringLiteral("milo.h@aol.com"));
     about.addAuthor(i18n("Gabriel Dominguez"), i18n("Developer"), QStringLiteral("gabriel@gabrieldominguez.es"));
     about.setHomepage("https://mauikit.org");
     about.setProductName("maui/index");
     about.setBugAddress("https://invent.kde.org/maui/index-fm/-/issues");
-    about.setOrganizationDomain(INDEX_URI);
+    about.setOrganizationDomain("kde.org");
     about.setProgramLogo(app.windowIcon());
 
     KAboutData::setApplicationData(about);
@@ -83,26 +85,29 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     const QStringList args = parser.positionalArguments();
     QStringList paths;
 
-    if(!args.isEmpty())
+    if (!args.isEmpty())
         paths = args;
 
     Index index;
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));
-    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
-                     &app, [url, paths, &index](QObject *obj, const QUrl &objUrl)
-    {
+    QObject::connect(
+        &engine,
+        &QQmlApplicationEngine::objectCreated,
+        &app,
+    [url, paths, &index](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl)
             QCoreApplication::exit(-1);
 
-        if(!paths.isEmpty())
+        if (!paths.isEmpty())
             index.openPaths(paths);
-
-    }, Qt::QueuedConnection);
+    },
+    Qt::QueuedConnection);
 
     engine.rootContext()->setContextProperty("inx", &index);
     qmlRegisterType<CompressedFile>(INDEX_URI, 1, 0, "CompressedFile");
     qmlRegisterType<FilePreviewer>(INDEX_URI, 1, 0, "FilePreviewProvider");
+    qmlRegisterType<LeftMenuData>(INDEX_URI, 1, 0, "LeftMenuData");
 
     engine.load(url);
 
@@ -112,3 +117,4 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 #endif
     return app.exec();
 }
+
