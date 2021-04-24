@@ -27,9 +27,9 @@ Rectangle {
 
     Component.onCompleted: {
         leftMenuModel.append({"menuName": "Type", "openState": true, "subNode":[]})
-        addSubNode(0, "Document", "assets/leftmenu/documentSelect.png", "assets/leftmenu/documentUnselect.png", false, "qrc:/widgets/views/Document", "null")//文档类
-        addSubNode(0, "Picture", "assets/leftmenu/picSelect.png", "assets/leftmenu/picUnselect.png", false, "qrc:/widgets/views/Picture", "null")//图片类
-        addSubNode(0, "Video", "assets/leftmenu/videoSelect.png", "assets/leftmenu/videoUnselect.png", false, "qrc:/widgets/views/Video", "null")//音视频类
+        addSubNode(0, "Documents", "assets/leftmenu/documentSelect.png", "assets/leftmenu/documentUnselect.png", false, "qrc:/widgets/views/Document", "null")//文档类
+        addSubNode(0, "Pictures", "assets/leftmenu/picSelect.png", "assets/leftmenu/picUnselect.png", false, "qrc:/widgets/views/Picture", "null")//图片类
+        addSubNode(0, "Videos", "assets/leftmenu/videoSelect.png", "assets/leftmenu/videoUnselect.png", false, "qrc:/widgets/views/Video", "null")//音视频类
         addSubNode(0, "Music", "assets/leftmenu/musicSelect.png", "assets/leftmenu/musicUnselect.png", false, "qrc:/widgets/views/Music", "null")//其他类 都是文件 文件夹不在这里展示                        
 
         leftMenuModel.append({"menuName": "Location", "openState": true, "subNode":[]})
