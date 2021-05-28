@@ -1,8 +1,3 @@
-/*
- * SPDX-FileCopyrightText: (C) 2021 Wangrui <Wangrui@jingos.com>
- * SPDX-License-Identifier: GPL-3.0-or-later
- */
-
 import QtQuick 2.14
 import QtQml 2.14
 import QtQuick.Controls 2.14
@@ -10,8 +5,12 @@ import QtQuick.Layouts 1.3
 import org.kde.kirigami 2.7 as Kirigami
 import org.kde.mauikit 1.2 as Maui
 
-Maui.Page{
+Maui.Page
+// Rectangle
+{
     id: control
+
+    // anchors.fill: parent
 
     property url currentUrl: ""
 
@@ -22,13 +21,28 @@ Maui.Page{
     property bool isFav : false
     property bool isDir : false
     property bool showInfo: true
-    property int type : 0
+    property int type : 0 //那种类型的文件  1--音频
 
-    background: Rectangle {
+    // property alias tagBar : _tagsBar
+
+    // title: _listView.currentItem.title
+
+    // headerBackground.color: "transparent"
+    // headBar.rightContent: ToolButton
+    // {
+    //     icon.name: "documentinfo"
+    //     checkable: true
+    //     checked: control.showInfo
+    //     onClicked: control.showInfo = !control.showInfo
+    // }
+
+    background: Rectangle
+    {
         color: "#00000000"
     }
 
-    ListView {
+    ListView
+    {
         id: _listView
         anchors.fill: parent
         orientation: ListView.Horizontal
@@ -36,7 +50,7 @@ Maui.Page{
         clip: true
         focus: true
         spacing: 0
-        interactive: false
+        interactive: false//Maui.Handy.isTouch
         highlightFollowsCurrentItem: true
         highlightMoveDuration: 0
         highlightResizeDuration : 0
@@ -44,8 +58,10 @@ Maui.Page{
         cacheBuffer: width
         keyNavigationEnabled : true
         keyNavigationWraps : true
+        // onMovementEnded: currentIndex = indexAt(contentX, contentY)
 
-        delegate: Item  {
+        delegate: Item
+        {
             id: _delegate
 
             height: ListView.view.height
@@ -57,7 +73,8 @@ Maui.Page{
             property alias infoModel : _infoModel
             readonly property string title: model.label
 
-            Loader  {
+            Loader
+            {
                 id: previewLoader
                 active: _delegate.isCurrentItem
                 visible: !control.showInfo
@@ -66,7 +83,8 @@ Maui.Page{
                 onActiveChanged: if(active) show(currentUrl)
             }
 
-            Kirigami.ScrollablePage {
+            Kirigami.ScrollablePage
+            {
                 id: _infoContent
                 anchors.fill: parent
                 visible: control.showInfo
@@ -78,11 +96,13 @@ Maui.Page{
                 topPadding: padding
                 bottomPadding: padding
 
-                ColumnLayout {
+                ColumnLayout
+                {
                     width: parent.width
                     spacing: 0
 
-                    Item {
+                    Item
+                    {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 100
 
@@ -95,19 +115,24 @@ Maui.Page{
                         }
                     }
 
-                    Maui.Separator {
+                    Maui.Separator
+                    {
+                        // position: Qt.Horizontal
                         Layout.fillWidth: true
                     }
 
-                    Repeater {
+                    Repeater
+                    {
                         model: ListModel { id: _infoModel }
-                        delegate: Maui.AlternateListItem {
+                        delegate: Maui.AlternateListItem
+                        {
                             visible: model.value
                             Layout.preferredHeight: visible ? _delegateColumnInfo.label1.implicitHeight + _delegateColumnInfo.label2.implicitHeight + Maui.Style.space.large : 0
                             Layout.fillWidth: true
                             lastOne: index === _infoModel.count-1
 
-                            Maui.ListItemTemplate {
+                            Maui.ListItemTemplate
+                            {
                                 id: _delegateColumnInfo
 
                                 iconSource: "documentinfo"
@@ -129,9 +154,8 @@ Maui.Page{
                 }
             }
 
-            function show(path) {
-                console.log("Init model for ", path, previewLoader.active, _delegate.isCurrentItem)
-
+            function show(path)//各个文件类型
+            {
                 leftMenuData.addFileToRecents(path.toString());
 
                 initModel()
@@ -141,29 +165,35 @@ Maui.Page{
                 root.currentTitle = iteminfo.label
 
                 var source = "DefaultPreview.qml"
-                if(iteminfo.mime.indexOf("audio") != -1) {
+                if(iteminfo.mime.indexOf("audio") != -1)//音频 直接播放
+                {
                     source = "AudioPreview.qml"
                     type = 1
-                }else if(Maui.FM.checkFileType(Maui.FMList.VIDEO, iteminfo.mime)) {
-                    source = "VideoPreview.qml"
-                }else if(Maui.FM.checkFileType(Maui.FMList.TEXT, iteminfo.mime)) {
+                }
+                else if(Maui.FM.checkFileType(Maui.FMList.TEXT, iteminfo.mime))
+                {
                     source = "TextPreview.qml"
-                }else if(Maui.FM.checkFileType(Maui.FMList.IMAGE, iteminfo.mime)) {
-                    source = "ImagePreview.qml"
-                }else if(Maui.FM.checkFileType(Maui.FMList.DOCUMENT, iteminfo.mime)) {
+                }
+                else if(Maui.FM.checkFileType(Maui.FMList.DOCUMENT, iteminfo.mime))
+                {
                     source = "DocumentPreview.qml"
-                }else if(Maui.FM.checkFileType(Maui.FMList.COMPRESSED, iteminfo.mime)) {
-                    source = "CompressedPreview.qml"
-                }else if(Maui.FM.checkFileType(Maui.FMList.FONT, iteminfo.mime)) {
-                    source = "FontPreviewer.qml"
-                }else {
+                }
+                else
+                {
                     source = "DefaultPreview.qml"
+                }
+
+                root.currentTitle = getCurrentTitle(currentBrowser.currentPath)
+                if(source == "DefaultPreview.qml")
+                {
+                    return
                 }
                 previewLoader.source = source
                 control.showInfo = source === "DefaultPreview.qml"
             }
 
-            function initModel() {
+            function initModel()
+            {
                 infoModel.clear()
                 infoModel.append({key: "Type", value: iteminfo.mime})
                 infoModel.append({key: "Date", value: Qt.formatDateTime(new Date(model.date), "d MMM yyyy")})
@@ -181,12 +211,14 @@ Maui.Page{
     }
 
     footerColumn: [
-        Maui.ToolBar {
+        Maui.ToolBar
+        {
             width: parent.width
             height: 1
             position: ToolBar.Bottom
             background: null
             visible: true
         }
+
        ]
 }

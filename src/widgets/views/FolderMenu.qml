@@ -1,8 +1,3 @@
-/*
- * SPDX-FileCopyrightText: (C) 2021 Wangrui <Wangrui@jingos.com>
- * SPDX-License-Identifier: GPL-3.0-or-later
- */
-
 import QtQuick 2.9
 import QtQuick.Controls 2.3
 import QtQuick.Layouts 1.3
@@ -10,7 +5,8 @@ import org.kde.mauikit 1.0 as Maui
 import org.kde.kirigami 2.15 as Kirigami
 import QtGraphicalEffects 1.0
 
-Kirigami.JPopupMenu {
+Kirigami.JPopupMenu 
+{
     id: control
 
     /**
@@ -39,7 +35,7 @@ Kirigami.JPopupMenu {
     property bool isFav: false
 
     /**
-      * 
+      * 暂时没有用到
       */
     signal bookmarkClicked(var item)
 
@@ -99,104 +95,188 @@ Kirigami.JPopupMenu {
     signal pasteClicked(var item)
 
 
-    Action {
-        text: "Bulk edit"
+    Action { //批量编辑
+        text: i18n("Bulk edit")
         icon.source: "qrc:/assets/popupmenu/bat_edit.png"
-        onTriggered: {
+        onTriggered:
+        {
             root.selectionMode = true
         }
     }
     
-    Kirigami.JMenuSeparator { 
+    Kirigami.JMenuSeparator 
+    { 
         width: parent.width * 2
         height: 20
         background:Rectangle{
             color: "#2E3C3C43"
+            // color: "#FFFF0000"
         }
     }
 
-    Action {
-        text: "Copy"
+    Action { //复制
+        text: i18n("Copy")
         icon.source: "qrc:/assets/popupmenu/copy.png"
-        onTriggered: {
+        onTriggered:
+        {
             copyClicked(control.item)
         }
     }
 
     Kirigami.JMenuSeparator { }
 
-    Action {
-        text: "Cut"
+    Action { //剪切
+        text: i18n("Cut")
         icon.source: "qrc:/assets/popupmenu/cut.png"
-        onTriggered: {
+        onTriggered:
+        {
             cutClicked(control.item)
         }
     }
-
     Kirigami.JMenuSeparator { }
-
-    Action {
-        text: "Delete"
+    Action { //删除
+        text: i18n("Delete")
         icon.source: "qrc:/assets/popupmenu/delete.png"
-        onTriggered: {
+        onTriggered:
+        {
             removeClicked(control.item)
         }
     }
-
     Kirigami.JMenuSeparator { }
-
     Action { 
-        text: "Rename"
+        text: i18n("Rename")
         icon.source: "qrc:/assets/popupmenu/rename.png"
-        onTriggered:  {
+        onTriggered:
+        {
             renameClicked(control.item)
         }
     }
-
-    Kirigami.JMenuSeparator  { 
+    Kirigami.JMenuSeparator 
+    { 
         width: parent.width * 2
         height: 20
         background:Rectangle{
             color: "#2E3C3C43"
         }
     }
-
     Action { 
-        text: "Info"
+        text: i18n("Info")
         icon.source: "qrc:/assets/popupmenu/info.png"
-        onTriggered: {
+        onTriggered:
+        {
             infoClicked(control.item)
+        }
+    }
+    Kirigami.JMenuSeparator { }
+    Action { 
+        text: i18n("Tags")
+        icon.source: "qrc:/assets/popupmenu/tags.png"
+        onTriggered:
+        {
+            tagsClicked(control.item)
+        }
+    }
+    Kirigami.JMenuSeparator { }
+    Action { 
+        id: favAction
+
+        text: 
+        {
+          if(leftMenuData.isCollectionFolder(control.item.path))
+          {
+            i18n("Remove favorite")
+          }else
+          {
+            i18n("Favorite")
+          }
+        }
+        
+        icon.source: 
+        {
+          if(leftMenuData.isCollectionFolder(control.item.path))
+          {
+            "qrc:/assets/popupmenu/fav_already.png"
+          }else
+          {
+            "qrc:/assets/popupmenu/fav.png"
+          }
+        }
+
+        onTriggered:
+        {
+            favClicked(control.item)
+        }
+    }
+    Kirigami.JMenuSeparator {
+      visible:
+      {
+        var action = itemAt(14)
+        if(action.text == i18n("Favorite") || action.text == i18n("Remove favorite"))
+        {
+          true
+        }else
+        {
+          false
+        }
+      }
+    }
+    Action { 
+        text: i18n("Compress")
+        icon.source: "qrc:/assets/popupmenu/zip.png"
+        onTriggered:
+        {
+            compressClicked(control.item)
         }
     }
 
     Kirigami.JMenuSeparator { }
 
     Action { 
-        text: "Favorite"
-        icon.source: "qrc:/assets/popupmenu/fav.png"
-        onTriggered: {
-            favClicked(control.item)
+        text: i18n("Open in terminal")
+        icon.source: "qrc:/assets/popupmenu/open_in_terminal.png"
+        onTriggered:
+        {
+            inx.openTerminal(control.item.path)
+            close()
         }
     }
 
-    function show(index) {
+    function show(index)
+    {
         control.item = currentFMModel.get(index)
 
-        if(item.path.startsWith("tags://") || item.path.startsWith("applications://")) {
+        if(item.path.startsWith("tags://") || item.path.startsWith("applications://"))
+        {
             return
         }
             
-        if(item) {
+        if(item)
+        {
             control.index = index
             control.isDir = item.isdir == true || item.isdir == "true"
             control.isExec = item.executable == true || item.executable == "true"
             control.isFav = Maui.FM.isFav(item.path)
+
+
+            if(leftMenuData.getDownloadsPath() == item.path)//如果是download那么不允许收藏
+            {
+                takeAction(14)
+            }else
+            {
+                var action = itemAt(15)
+                if(action.text == i18n("Compress")) {
+                    insertAction(14, favAction)
+                }
+            }
+
             popup(wholeScreen, menuX, menuY)
         }
     }
 
-    onVisibleChanged: {
-      if(!visible) {
+    onVisibleChanged:
+    {
+      if(!visible)
+      {
         root_menuSelectionBar.clear()  
       }
     }

@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.3
 import org.kde.mauikit 1.0 as Maui
 import org.kde.kirigami 2.2 as Kirigami
 
-Menu
+Menu//原有menu逻辑  现在不用了
 {
     id: control
     implicitWidth: 200
@@ -59,11 +59,13 @@ Menu
       */
     signal renameClicked(var item)
 
-    MenuItem {
+    MenuItem
+    {
         visible: !control.isExec && selectionBar
         text: i18n("Select")
         icon.name: "edit-select"
-        onTriggered: {
+        onTriggered:
+        {
             addToSelection(currentFMModel.get(index), index)
             if(Maui.Handy.isTouch)
                 selectionMode = true
@@ -73,20 +75,24 @@ Menu
     MenuSeparator{visible: selectionBar}
 
 
-    MenuItem {
+    MenuItem
+    {
         text: control.isFav ? i18n("Remove from Favorites") : i18n("Add to Favorites")
         icon.name: "love"
-        onTriggered: {
+        onTriggered:
+        {
             if(Maui.FM.toggleFav(item.path))
                 control.isFav = !control.isFav
         }
     }
 
-    MenuItem {
+    MenuItem
+    {
         visible: !control.isExec && control.isDir
         text: i18n("Add to Bookmarks")
         icon.name: "bookmark-new"
-        onTriggered: {
+        onTriggered:
+        {
             bookmarkClicked(control.item)
             close()
         }
@@ -94,54 +100,63 @@ Menu
 
     MenuSeparator{}
 
-    MenuItem {
+    MenuItem
+    {
         visible: !control.isExec
         text: i18n("Copy")
         icon.name: "edit-copy"
-        onTriggered: {
+        onTriggered:
+        {
             copyClicked(control.item)
             close()
         }
     }
 
-    MenuItem  {
+    MenuItem
+    {
         visible: !control.isExec
         text: i18n("Cut")
         icon.name: "edit-cut"
-        onTriggered: {
+        onTriggered:
+        {
             cutClicked(control.item)
             close()
         }
     }
 
-    MenuItem {
+    MenuItem
+    {
         visible: !control.isExec
         text: i18n("Rename2")
         icon.name: "edit-rename"
-        onTriggered: {
+        onTriggered:
+        {
             renameClicked(control.item)
             close()
         }
     }
 
-    MenuItem {
+    MenuItem
+    {
         text: i18n("Remove")
         Kirigami.Theme.textColor: Kirigami.Theme.negativeTextColor
         icon.name: "edit-delete"
-        onTriggered: {
+        onTriggered:
+        {
             removeClicked(control.item)
             close()
         }
     }
 
-    function show(index) {
+    function show(index)
+    {
         control.item = currentFMModel.get(index)
 
         if(item.path.startsWith("tags://") || item.path.startsWith("applications://") )
             return
 
-            if(item) {
-                console.log("GOT ITEM FILE", index, item.path)
+            if(item)
+            {
                 control.index = index
                 control.isDir = item.isdir == true || item.isdir == "true"
                 control.isExec = item.executable == true || item.executable == "true"

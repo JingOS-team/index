@@ -1,7 +1,9 @@
 # Copyright 2018-2020 Camilo Higuita <milo.h@aol.com>
 # Copyright 2018-2020 Nitrux Latinoamericana S.C.
-# SPDX-FileCopyrightText: (C) 2021 Wangrui <Wangrui@jingos.com>
+#
 # SPDX-License-Identifier: GPL-3.0-or-later
+
+qtquick_compiler_add_resources(hjyRec qml.qrc)
 
 if(ANDROID)
     add_library(index SHARED
@@ -19,7 +21,7 @@ else()
         controllers/filepreviewer.cpp
         controllers/compressedfile.cpp
         models/left_menu/leftmenudata.cpp
-        qml.qrc
+        ${hjyRec}
     )
 endif()
 

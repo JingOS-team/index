@@ -1,6 +1,6 @@
 /*
  *   Copyright 2018 Camilo Higuita <milo.h@aol.com>
- *   SPDX-FileCopyrightText: (C) 2021 Wangrui <Wangrui@jingos.com>
+ *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
  *   published by the Free Software Foundation; either version 2, or
@@ -34,7 +34,8 @@ import QtGraphicalEffects 1.0
  *
  *
  */
-Item {
+Item
+{
     id: control
     Kirigami.Theme.colorSet: Kirigami.Theme.View
     focus: true
@@ -138,11 +139,6 @@ Item {
     property int margins: (Kirigami.Settings.isMobile ? 0 : Maui.Style.space.medium)
 
     /**
-      * holder : Holder
-      */
-    // property alias holder : _holder
-
-    /**
       * adaptContent : bool
       */
     property bool adaptContent: true
@@ -156,16 +152,6 @@ Item {
       * selectionMode : bool
       */
     property bool selectionMode: false
-
-    /**
-      * lassoRec : Rectangle
-      */
-    // property alias lassoRec : selectLayer
-
-    /**
-      * pinchEnabled : bool
-      */
-    // property alias pinchEnabled : _pinchArea.enabled
 
     /**
       * itemsSelected :
@@ -187,25 +173,31 @@ Item {
       */
     signal keyPress(var event)
 
-        GridView {
+
+        GridView
+        {
             id: controlView
 
+            // property alias position : _hoverHandler.point.position
             property var selectedIndexes : []
 
             anchors.fill: parent
 
             anchors.left: parent.left
-            anchors.leftMargin: 90
+            anchors.leftMargin: 45
             anchors.right: parent.right
-            anchors.rightMargin: 90
+            anchors.rightMargin: 45
             anchors.bottom: parent.bottom
+            anchors.bottomMargin: 10
 
             //nasty trick
             property int size_
-            Component.onCompleted: {
+            Component.onCompleted:
+            {
                 controlView.size_ = control.itemWidth
             }
             flow: GridView.FlowLeftToRight
+            // clip: true
             focus: true
             cellWidth: control.itemWidth
             cellHeight: control.itemHeight
@@ -213,7 +205,62 @@ Item {
 
             cacheBuffer: controlView.height * 1.5  
 
-            MouseArea {
+              //动画添加 start
+            // populate: Transition{
+                // NumberAnimation{
+                //     property: "opacity"
+                //     from: 0
+                //     to: 1.0
+                //     duration: 1000
+                // }
+                // NumberAnimation { properties: "x,y"; duration: 1000 }
+            // }//populate Transition is end
+
+            // add:Transition {
+            //     ParallelAnimation{
+            //         NumberAnimation{
+            //             property: "opacity"
+            //             from: 0
+            //             to : 1.0
+            //             duration: 1000
+            //         }
+
+            //         NumberAnimation{
+            //             property: "y"
+            //             from: 0
+            //             duration:  1000
+            //         }
+            //     }
+            // }// add transition is end
+
+            // displaced: Transition {
+            //     SpringAnimation{
+            //         property: "y"
+            //         spring: 3
+            //         damping: 0.1
+            //         epsilon: 0.25
+            //     }
+            // }
+
+            // remove: Transition {
+            //     SequentialAnimation{
+            //         NumberAnimation{
+            //             property: "y"
+            //             to: 0
+            //             duration: 600
+            //         }
+
+            //         NumberAnimation{
+            //             property: "opacity"
+            //             to:0
+            //             duration: 600
+            //         }
+            //     }
+            // }//remove Transition is end
+            // 动画添加 end
+
+            MouseArea
+            {
                 id: _mouseArea
                 z: -1
                 enabled: true//!Kirigami.Settings.hasTransientTouchInput && !Kirigami.Settings.isMobile
@@ -221,11 +268,13 @@ Item {
                 propagateComposedEvents: true
                 acceptedButtons:  Qt.RightButton | Qt.LeftButton
 
-                onClicked: {
+                onClicked:
+                {
                   control.areaClicked(mouse)
                   control.forceActiveFocus()
 
-                  if(mouse.button === Qt.RightButton) {
+                  if(mouse.button === Qt.RightButton)
+                  {
                       var realMap = mapToItem(wholeScreen, mouse.x, mouse.y)
                       menuX = realMap.x
                       menuY = realMap.y
@@ -234,9 +283,12 @@ Item {
                   }
                 }
 
-                onWheel: {
-                    if (wheel.modifiers & Qt.ControlModifier) {
-                        if (wheel.angleDelta.y != 0) {
+                onWheel:
+                {
+                    if (wheel.modifiers & Qt.ControlModifier)
+                    {
+                        if (wheel.angleDelta.y != 0)
+                        {
                             var factor = 1 + wheel.angleDelta.y / 600;
                             control.resizeContent(factor)
                         }
@@ -244,16 +296,21 @@ Item {
                         wheel.accepted = false
                 }
 
-                onPositionChanged: {
+                onPositionChanged:
+                {
                 }
 
-                onPressed: {
+                onPressed:
+                {
                 }
 
-                onPressAndHold: {
-                  if ( mouse.source !== Qt.MouseEventNotSynthesized && control.enableLassoSelection && /*!selectLayer.visible*/ true ) {
+                onPressAndHold:
+                {
+                  if ( mouse.source !== Qt.MouseEventNotSynthesized && control.enableLassoSelection && /*!selectLayer.visible*/ true )
+                  {
                       mouse.accepted = true
-                  }else {
+                  }else
+                  {
                       mouse.accepted = false
                   }
                   var realMap = mapToItem(wholeScreen, mouse.x, mouse.y)
@@ -262,24 +319,32 @@ Item {
                   control.areaRightClicked(mouse)
                 }
 
-                onReleased: {
-                  if(mouse.button !== Qt.LeftButton || !control.enableLassoSelection || /*!selectLayer.visible*/ true) {
+                onReleased:
+                {
+                  if(mouse.button !== Qt.LeftButton || !control.enableLassoSelection || /*!selectLayer.visible*/ true)
+                  {
                       mouse.accepted = false
                       return;
                   }
                 }
             }
+
+           
         }
 
     /**
       *
       */
-    function resizeContent(factor) {
+    function resizeContent(factor)
+    {
         const newSize= control.itemSize * factor
 
-        if(newSize > control.itemSize) {
+        if(newSize > control.itemSize)
+        {
             control.itemSize =  newSize
-        } else {
+        }
+        else
+        {
             if(newSize >= Maui.Style.iconSizes.small)
                 control.itemSize =  newSize
         }
@@ -288,7 +353,8 @@ Item {
     /**
       *
       */
-    function adaptGrid() {
+    function adaptGrid()
+    {
         var fullWidth = controlView.width
         var realAmount = parseInt(fullWidth / controlView.size_, 10)
         var amount = parseInt(fullWidth / control.cellWidth, 10)

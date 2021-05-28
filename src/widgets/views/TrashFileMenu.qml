@@ -1,8 +1,3 @@
-/*
- * SPDX-FileCopyrightText: (C) 2021 Wangrui <Wangrui@jingos.com>
- * SPDX-License-Identifier: GPL-3.0-or-later
- */
-
 import QtQuick 2.9
 import QtQuick.Controls 2.3
 import QtQuick.Layouts 1.3
@@ -10,7 +5,8 @@ import org.kde.mauikit 1.0 as Maui
 import org.kde.kirigami 2.15 as Kirigami
 import QtGraphicalEffects 1.0
 
-Kirigami.JPopupMenu {
+Kirigami.JPopupMenu 
+{
 
     id: control
     /**
@@ -30,15 +26,28 @@ Kirigami.JPopupMenu {
       */
     signal removeClicked(var item)
 
+
     /**
       *
       */
     signal infoClicked(var item)
 
+    Action { //批量编辑
+        text: i18n("Bulk edit")
+        icon.source: "qrc:/assets/popupmenu/bat_edit.png"
+        onTriggered:
+        {
+            root.selectionMode = true
+        }
+    }
+
+    Kirigami.JMenuSeparator { }
+
     Action { 
-        text: "Recover"
+        text: i18n("Recover")
         icon.source: "qrc:/assets/popupmenu/recover.png"
-        onTriggered: {
+        onTriggered:
+        {
             restoreClicked(control.item)
             close()
         }
@@ -47,40 +56,49 @@ Kirigami.JPopupMenu {
     Kirigami.JMenuSeparator { }
 
     Action { 
-        text: "Delete"
+        text: i18n("Delete")
         icon.source: "qrc:/assets/popupmenu/delete.png"
-        onTriggered: {
+        onTriggered:
+        {
             removeClicked(control.item)
             close()
         }
     }
 
+
     Kirigami.JMenuSeparator { }
 
     Action { 
-        text: "Info"
+        text: i18n("Info")
         icon.source: "qrc:/assets/popupmenu/info.png"
-        onTriggered: {
+        onTriggered:
+        {
             infoClicked(control.item)
             close()
         }
     }
 
-    function show(index) {
+    function show(index)
+    {
         control.item = currentFMModel.get(index)
 
-        if(item.path.startsWith("tags://") || item.path.startsWith("applications://")) {
+        if(item.path.startsWith("tags://") || item.path.startsWith("applications://"))
+        {
             return
         }
+            
 
-        if(item) {
+        if(item)
+        {
             control.index = index
             popup(wholeScreen, menuX, menuY)
         }
     }
 
-    onVisibleChanged: {
-      if(!visible) {
+    onVisibleChanged:
+    {
+      if(!visible)
+      {
         root_menuSelectionBar.clear()  
       }
     }

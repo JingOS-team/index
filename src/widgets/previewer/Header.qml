@@ -1,5 +1,6 @@
 /*
- * SPDX-FileCopyrightText: (C) 2021 Wangrui <Wangrui@jingos.com>
+ * SPDX-FileCopyrightText: 2020 George Florea Bănuș <georgefb899@gmail.com>
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -12,19 +13,28 @@ import QtGraphicalEffects 1.12
 
 
 ToolBar {
+
+    property var wallpaperUrl
+    Loader{
+        id:wallpaperLoader
+        // sourceComponent: wallpaperComponent
+        active: false
+    }
+
     property var currentname
 
     position: ToolBar.Header
     hoverEnabled: true
     visible: true
-    Kirigami.JIconButton {
+    Kirigami.JIconButton
+    {
         id: backImage
-        width: 44 + 10
+        width: 22 + 10
         height: width
         source: "qrc:/assets/image_back.png"
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: parent.left
-        anchors.leftMargin: 21
+        anchors.leftMargin: 10
         onClicked: {
             root.hideImageViewer()
         }
@@ -34,16 +44,55 @@ ToolBar {
         id:name
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: backImage.right
-        anchors.leftMargin: 21
+        anchors.leftMargin: 8
         text: currentname
-        font.pointSize: theme.defaultFont.pointSize + 6
+        font.pixelSize: 20
         style: Text.Gilroy
         color: 
         {
             "#FFFFFFFF"
         }
-
         width: parent.width - backImage.width * 2
         elide: Text.ElideRight
+    }
+
+    Kirigami.JIconButton
+    {
+        id: deleteImage
+        width: 22 + 10
+        height: width
+        source: "qrc:/assets/image_delete.png"
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.right: parent.right
+        anchors.rightMargin: 13
+        onClicked: {
+            const item = root.currentBrowser.currentFMModel.get(root.imageIndex)
+            currentBrowser.moveToTrash(item)
+            root.hideImageViewer()
+        }
+    }
+
+    Kirigami.JIconButton
+    {
+        id: setWallPaperImage
+        width: 22 + 10
+        height: width
+        source: "qrc:/assets/image_set_wallpaper.png"
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.right: deleteImage.left
+        anchors.rightMargin: 35
+        onClicked: {
+            openWallpaperView(root.imageUrl)
+        }
+        
+    }
+
+    function openWallpaperView(imageUrl){
+        wallpaperUrl = imageUrl
+        wallpaperLoader.active = true
+    }
+
+    function popWallpaperView(){
+        wallpaperLoader.active = false
     }
 }

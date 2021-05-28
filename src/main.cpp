@@ -6,7 +6,7 @@
 #include <QCommandLineParser>
 #include <QIcon>
 #include <QQmlApplicationEngine>
-#include <QQmlContext>
+// #include <QQmlContext>
 
 #include <KAboutData>
 
@@ -25,11 +25,11 @@
 
 #include <MauiKit/mauiapp.h>
 
-#if defined Q_OS_MACOS || defined Q_OS_WIN
-#include <KF5/KI18n/KLocalizedString>
-#else
-#include <KI18n/KLocalizedString>
-#endif
+// #if defined Q_OS_MACOS || defined Q_OS_WIN
+// #include <KF5/KI18n/KLocalizedString>
+// #else
+// #include <KI18n/KLocalizedString>
+// #endif
 
 #include "../index_version.h"
 
@@ -37,6 +37,11 @@
 #include "controllers/filepreviewer.h"
 
 #include "models/left_menu/leftmenudata.h"
+
+#include <KLocalizedString>
+#include <KLocalizedContext>
+
+#include <QtQml>
 
 #define INDEX_URI "org.maui.index"
 
@@ -59,12 +64,15 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QApplication app(argc, argv);
 #endif
 
+    KLocalizedString::setApplicationDomain("filemanager");
+    KLocalizedString::addDomainLocaleDir("filemanager", "/usr/share/local");
+
     app.setOrganizationName(QStringLiteral("Maui"));
+    // app.setWindowIcon(QIcon(":/index.png"));
     app.setWindowIcon(QIcon(":/zip.png"));
     MauiApp::instance()->setHandleAccounts(false); // for now index can not handle cloud accounts
     MauiApp::instance()->setIconName("qrc:/assets/index_new.svg");
 
-    KLocalizedString::setApplicationDomain("index");
     KAboutData about(QStringLiteral("index"), i18n("Index"), INDEX_VERSION_STRING, i18n("Index allows you to navigate your computer and preview multimedia files."), KAboutLicense::LGPL_V3, i18n("© 2019-2020 Nitrux Development Team"));
     about.addAuthor(i18n("Camilo Higuita"), i18n("Developer"), QStringLiteral("milo.h@aol.com"));
     about.addAuthor(i18n("Gabriel Dominguez"), i18n("Developer"), QStringLiteral("gabriel@gabrieldominguez.es"));
@@ -73,7 +81,6 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     about.setBugAddress("https://invent.kde.org/maui/index-fm/-/issues");
     about.setOrganizationDomain("kde.org");
     about.setProgramLogo(app.windowIcon());
-
     KAboutData::setApplicationData(about);
 
     QCommandLineParser parser;
@@ -86,29 +93,38 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QStringList paths;
 
     if (!args.isEmpty())
+    {
         paths = args;
-
+    }
+        
     Index index;
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));
+    // const QUrl url(QStringLiteral("qrc:/main1.qml"));
+    // const QUrl url(QStringLiteral("qrc:/main_bak.qml"));
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreated,
         &app,
-    [url, paths, &index](QObject *obj, const QUrl &objUrl) {
-        if (!obj && url == objUrl)
-            QCoreApplication::exit(-1);
+        [url, paths, &index](QObject *obj, const QUrl &objUrl) {
+            if (!obj && url == objUrl)
+                QCoreApplication::exit(-1);
 
-        if (!paths.isEmpty())
-            index.openPaths(paths);
-    },
-    Qt::QueuedConnection);
+            if (!paths.isEmpty())
+                index.openPaths(paths);
+        },
+        Qt::QueuedConnection);
 
     engine.rootContext()->setContextProperty("inx", &index);
     qmlRegisterType<CompressedFile>(INDEX_URI, 1, 0, "CompressedFile");
     qmlRegisterType<FilePreviewer>(INDEX_URI, 1, 0, "FilePreviewProvider");
     qmlRegisterType<LeftMenuData>(INDEX_URI, 1, 0, "LeftMenuData");
 
+
+    // engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
+    KLocalizedContext *kc = new KLocalizedContext(&engine);
+    kc->setTranslationDomain("filemanager");
+    engine.rootContext()->setContextObject(kc);
     engine.load(url);
 
 #ifdef Q_OS_MACOS

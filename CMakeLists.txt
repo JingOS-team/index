@@ -38,6 +38,9 @@ elseif(UNIX)
 endif()
 
 find_package(MauiKit REQUIRED)
+# find_package(KF5I18n CONFIG REQUIRED)
+find_package(Qt5QuickCompiler)
+ki18n_install(po)
 
 if(UNIX AND NOT APPLE AND NOT ANDROID)
     include(KDEInstallDirs)

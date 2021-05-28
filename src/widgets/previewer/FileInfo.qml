@@ -1,8 +1,3 @@
-/*
- * SPDX-FileCopyrightText: (C) 2021 Wangrui <Wangrui@jingos.com>
- * SPDX-License-Identifier: GPL-3.0-or-later
- */
-
 import QtQuick 2.14
 import QtQml 2.14
 import QtQuick.Controls 2.14
@@ -11,21 +6,34 @@ import org.kde.kirigami 2.15 as Kirigami
 import org.kde.mauikit 1.2 as Maui
 import QtGraphicalEffects 1.0
 
-Popup {
+Popup
+// Menu
+{
+    // infoModel.append({key: "Type", value: iteminfo.mime})
+    // infoModel.append({key: "Date", value: Qt.formatDateTime(new Date(model.date), "d MMM yyyy")})
+    // infoModel.append({key: "Modified", value: Qt.formatDateTime(new Date(model.modified), "d MMM yyyy")})
+    // infoModel.append({key: "Last Read", value: Qt.formatDateTime(new Date(model.lastread), "d MMM yyyy")})
+    // infoModel.append({key: "Size", value: Maui.FM.formatSize(iteminfo.size)})
+    // infoModel.append({key: "Path", value: iteminfo.path})
+    // infoModel.append({key: "Thumbnail", value: iteminfo.thumbnail})
+    // infoModel.append({key: "Icon Name", value: iteminfo.icon})
+
     property var item : ({})
     property var localPath: ""
     property var fileSize: ""
 
     id: control
     parent: Overlay.overlay
-    width: 550
-    height: 732
+    width: 275
+    height: 366
     modal: false
     focus: true
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-    background: Rectangle {
-        radius: 18
-        ShaderEffectSource {
+    background: Rectangle
+    {
+        radius: 9
+        ShaderEffectSource
+        {
             id: footerBlur
 
             width: parent.width
@@ -54,7 +62,7 @@ Popup {
 
             visible: false
             clip: true
-            radius: 18
+            radius: 9
         }
         OpacityMask{
             id: mask
@@ -67,7 +75,7 @@ Popup {
         Rectangle{
             anchors.fill: footerBlur
             color: "#CCF7F7F7"
-            radius: 18
+            radius: 9
         }
 
         DropShadow {
@@ -83,28 +91,39 @@ Popup {
         }
     }
 
-    Kirigami.Icon {
+    // onVisibleChanged:{
+    //     blurBk.startX = control.x
+    //     blurBk.startY = control.y
+    // }
+    // background: Kirigami.JBlurBackground{
+    //     id: blurBk
+    //     anchors.fill: parent
+    //     sourceItem: applicationWindw().pageStack.currentItem
+    // }
+
+    Kirigami.Icon
+    {
         id: iconImage
         anchors{
             top: parent.top
-            topMargin: 70
+            topMargin: 35
             horizontalCenter: parent.horizontalCenter
         }
-        width: 140
-        height: 140
+        width: 70
+        height: 70
         source: getIcon(item)
     }
 
     Text {
         id: fileNameText
-        anchors {
+        anchors{
             top: iconImage.bottom
-            topMargin: 12
+            topMargin: 6
             horizontalCenter: parent.horizontalCenter
         }
         width: parent.width - 100
         text: item.label
-        font.pointSize: textDefaultSize - 3
+        font.pixelSize: 11
         color: "black"
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.WrapAnywhere
@@ -120,20 +139,26 @@ Popup {
             topMargin: 3
             horizontalCenter: parent.horizontalCenter
         }
+        // width: parent.width - 5
         horizontalAlignment: Text.AlignHCenter
-        text: fileSize
-        font.pointSize: textDefaultSize - 5
+        text: fileSize//Maui.FM.formatSize(item.size)
+        font.pixelSize: 10
         color: "#4D000000"
 
-        Connections {
+        Connections
+        {
             target: leftMenuData
-            onRefreshDirSize:  {
+            onRefreshDirSize: 
+            {
                 fileSize = Maui.FM.formatSize(size)
-                if(fileSize.indexOf("KiB") != -1) {
+                if(fileSize.indexOf("KiB") != -1)
+                {
                     fileSize = fileSize.replace("KiB", "K")
-                }else if(fileSize.indexOf("MiB") != -1) {
+                }else if(fileSize.indexOf("MiB") != -1)
+                {
                     fileSize = fileSize.replace("MiB", "M")
-                }else if(fileSize.indexOf("GiB") != -1) {
+                }else if(fileSize.indexOf("GiB") != -1)
+                {
                     fileSize = fileSize.replace("GiB", "G")
                 }
             }
@@ -145,44 +170,58 @@ Popup {
         id: infoNameText
         anchors{
             top: fileSizeText.bottom
-            topMargin: 55
+            topMargin: 28
             left: parent.left
-            leftMargin: 50
+            leftMargin: 25
         }
-        text: "Infomation"
-        font.pointSize: textDefaultSize + 6
+        // width: parent.width - 5
+        text: i18n("Information")
+        font.pixelSize: 17
         color: "black"
         horizontalAlignment: Text.AlignHCenter
         elide: Text.ElideRight
         clip: true
     }
 
-    Rectangle{
+    Rectangle//文件类型
+    {
         id: kindRect
         width: parent.width
-        height: 60
+        height: 30
         anchors{
             top: infoNameText.bottom
-            topMargin: 30
+            topMargin: 15
         }
         color: "#00000000"
 
         Text {
             anchors{
                 left: parent.left
-                leftMargin: 50
+                leftMargin: 25
                 verticalCenter: parent.verticalCenter
             }
-            text: "Kind"
-            font.pointSize: textDefaultSize - 3
+            text: i18n("Kind")
+            font.pixelSize: 11
             color: "#4D000000"
             elide: Text.ElideRight
         }
 
+        // Text {
+        //     anchors{
+        //         right: parent.right
+        //         rightMargin: 50
+        //         verticalCenter: parent.verticalCenter
+        //     }
+        //     text: item.mime
+        //     font.pointSize: textDefaultSize  - 3
+        //     color: "#4D000000"
+        //     elide: Text.ElideRight
+        // }
+
         TextField  {
             anchors{
                 right: parent.right
-                rightMargin: 50
+                rightMargin: 25
                 verticalCenter: parent.verticalCenter
             }
             background: Rectangle
@@ -192,21 +231,23 @@ Popup {
             text: item.mime
             horizontalAlignment: Text.AlignRight
             width: parent.width / 5 * 3
-            font.pointSize: textDefaultSize - 3
+            font.pixelSize: 11
             color: "#4D000000"
             readOnly : true
             selectByMouse: true
         }
     }
 
-    Kirigami.JMenuSeparator { 
+    Kirigami.JMenuSeparator 
+    { 
         anchors.top: kindRect.bottom
     }
 
-    Rectangle {
+    Rectangle //创建时间
+    {
         id: createdRect
         width: parent.width
-        height: 60
+        height: 30
         anchors{
             top: kindRect.bottom
         }
@@ -215,11 +256,11 @@ Popup {
         Text {
             anchors{
                 left: parent.left
-                leftMargin: 50
+                leftMargin: 25
                 verticalCenter: parent.verticalCenter
             }
-            text: "Created"
-            font.pointSize: textDefaultSize  - 3
+            text: i18n("Created")
+            font.pixelSize: 11
             color: "#4D000000"
             elide: Text.ElideRight
         }
@@ -227,24 +268,26 @@ Popup {
         Text {
             anchors{
                 right: parent.right
-                rightMargin: 50
+                rightMargin: 25
                 verticalCenter: parent.verticalCenter
             }
             text: Qt.formatDateTime(new Date(item.date), "dd.MM.yyyy")
-            font.pointSize: textDefaultSize  - 3
+            font.pixelSize: 11
             color: "#4D000000"
             elide: Text.ElideRight
         }
     }
 
-    Kirigami.JMenuSeparator { 
+    Kirigami.JMenuSeparator 
+    { 
         anchors.top: createdRect.bottom
     }
 
-    Rectangle {
+    Rectangle//最后修改时间
+    {
         id: modifiedRect
         width: parent.width
-        height: 60
+        height: 30
         anchors{
             top: createdRect.bottom
         }
@@ -253,11 +296,11 @@ Popup {
         Text {
             anchors{
                 left: parent.left
-                leftMargin: 50
+                leftMargin: 25
                 verticalCenter: parent.verticalCenter
             }
-            text: "Modified"
-            font.pointSize: textDefaultSize  - 3
+            text: i18n("Modified")
+            font.pixelSize: 11
             color: "#4D000000"
             elide: Text.ElideRight
         }
@@ -265,24 +308,26 @@ Popup {
         Text {
             anchors{
                 right: parent.right
-                rightMargin: 50
+                rightMargin: 25
                 verticalCenter: parent.verticalCenter
             }
             text: Qt.formatDateTime(new Date(item.modified), "dd.MM.yyyy")
-            font.pointSize: textDefaultSize  - 3
+            font.pixelSize: 11
             color: "#4D000000"
             elide: Text.ElideRight
         }
     }
 
-    Kirigami.JMenuSeparator  { 
+    Kirigami.JMenuSeparator 
+    { 
         anchors.top: modifiedRect.bottom
     }
 
-    Rectangle {
+    Rectangle//最后访问时间
+    {
         id: lastopenedRect
         width: parent.width
-        height: 60
+        height: 30
         anchors{
             top: modifiedRect.bottom
         }
@@ -291,11 +336,11 @@ Popup {
         Text {
             anchors{
                 left: parent.left
-                leftMargin: 50
+                leftMargin: 25
                 verticalCenter: parent.verticalCenter
             }
-            text: "Last opened"
-            font.pointSize: textDefaultSize  - 3
+            text: i18n("Last opened")
+            font.pixelSize: 11
             color: "#4D000000"
             elide: Text.ElideRight
         }
@@ -303,24 +348,26 @@ Popup {
         Text {
             anchors{
                 right: parent.right
-                rightMargin: 50
+                rightMargin: 25
                 verticalCenter: parent.verticalCenter
             }
             text: Qt.formatDateTime(new Date(item.lastread), "dd.MM.yyyy")
-            font.pointSize: textDefaultSize  - 3
+            font.pixelSize: 11
             color: "#4D000000"
             elide: Text.ElideRight
         }
     }
 
-    Kirigami.JMenuSeparator  { 
+    Kirigami.JMenuSeparator 
+    { 
         anchors.top: lastopenedRect.bottom
     }
 
-    Rectangle {
+    Rectangle//所在目录
+    {
         id: whereRect
         width: parent.width
-        height: 60
+        height: 30
         anchors{
             top: lastopenedRect.bottom
         }
@@ -330,19 +377,35 @@ Popup {
             id: whereTextId
             anchors{
                 left: parent.left
-                leftMargin: 50
+                leftMargin: 25
                 verticalCenter: parent.verticalCenter
             }
-            text: "Where"
-            font.pointSize: textDefaultSize - 3
+            text: i18n("Where")
+            font.pixelSize: 11
             color: "#4D000000"
             elide: Text.ElideRight
         }
 
+        // Text {
+        //     anchors{
+        //         right: parent.right
+        //         rightMargin: 50
+        //         top: whereTextId.top
+        //     }
+        //     text: localPath
+        //     horizontalAlignment: Text.AlignRight
+        //     width: parent.width / 5 * 3
+        //     font.pointSize: textDefaultSize - 3
+        //     color: "#4D000000"
+        //     wrapMode: Text.WrapAnywhere
+        //     elide: Text.ElideRight
+        //     maximumLineCount: 4
+        // }
+
         TextField  {
             anchors{
                 right: parent.right
-                rightMargin: 50
+                rightMargin: 25
                 top: whereTextId.top
                 topMargin: -10
             }
@@ -353,40 +416,55 @@ Popup {
             text: localPath
             horizontalAlignment: Text.AlignRight
             width: parent.width / 5 * 3
-            font.pointSize: textDefaultSize - 3
+            font.pixelSize: 11
             color: "#4D000000"
             readOnly : true
             selectByMouse: true
         }
     }
 
-    function show(index) {
-        if(index == -1) {
+
+
+    function show(index)
+    {
+        if(index == -1)//在页面的空白处右键info 相当于获取上级目录的信息
+        {
             item = Maui.FM.getFileInfo(root.currentPath)
-        }else {
+        }else
+        {
             item = root.currentBrowser.currentFMModel.get(index)
         }
-        if(item.path.indexOf("file://") >= 0) {
+        if(item.path.indexOf("file://") >= 0)
+        {
             localPath = item.path.replace("file://", "")
-        }else {
+        }else
+        {
             localPath = item.path
         }
 
-        if(item.isdir == "true") {
+        //计算文件或者文件夹大小 start
+        if(item.isdir == "true")//文件夹大小获取
+        {
             leftMenuData.getDirSize(localPath)
-        }else  {
+        }else//单个文件获取
+        {
             fileSize = Maui.FM.formatSize(item.size)
-            if(fileSize.indexOf("KiB") != -1) {
+            if(fileSize.indexOf("KiB") != -1)
+            {
                 fileSize = fileSize.replace("KiB", "K")
-            }else if(fileSize.indexOf("MiB") != -1) {
+            }else if(fileSize.indexOf("MiB") != -1)
+            {
                 fileSize = fileSize.replace("MiB", "M")
-            }else if(fileSize.indexOf("GiB") != -1) {
+            }else if(fileSize.indexOf("GiB") != -1)
+            {
                 fileSize = fileSize.replace("GiB", "G")
             }
         }
+        //计算文件或者文件夹大小 end
 
         var lastg = localPath.lastIndexOf("/") 
-        if(lastg >= 0) {
+        if(lastg >= 0)
+        {
             localPath = localPath.substring(0, lastg)
         }
         
@@ -395,7 +473,8 @@ Popup {
         open()
     }
 
-    onClosed: {
+    onClosed:
+    {
         leftMenuData.cancelGetDirSize()
     }
 }

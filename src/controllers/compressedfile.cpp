@@ -1,7 +1,5 @@
-// Copyright 2020 Wang Rui <wangrui@jingos.com>
-//
-// SPDX-License-Identifier: GPL-3.0-or-later
 #include "compressedfile.h"
+
 #include <KArchive/KTar>
 #include <KArchive/KZip>
 #include <KArchive/kcompressiondevice.h>
@@ -13,6 +11,8 @@
 
 #include <KArchive/kar.h>
 #include <qdiriterator.h>
+#include <QFuture>
+#include <QtConcurrent>
 
 CompressedFile::CompressedFile(QObject *parent)
     : QObject(parent)
@@ -32,7 +32,7 @@ const FMH::MODEL_LIST &CompressedFileModel::items() const
 
 void CompressedFileModel::setUrl(const QUrl &url)
 {
-    qDebug() << "@gadominguez File:fm.cpp Funcion: getEntries  Url:" << url.toString();
+    // qDebug() << "@gadominguez File:fm.cpp Funcion: getEntries  Url:" << url.toString();
     emit this->preListChanged();
     m_list.clear();
 
@@ -40,7 +40,7 @@ void CompressedFileModel::setUrl(const QUrl &url)
     kArch->open(QIODevice::ReadOnly);
     assert(kArch->isOpen() == true);
     if (kArch->isOpen()) {
-        qDebug() << "@gadominguez File:fm.cpp Funcion: getEntries  Entries:" << kArch->directory()->entries();
+        // qDebug() << "@gadominguez File:fm.cpp Funcion: getEntries  Entries:" << kArch->directory()->entries();
 
         for (auto entry : kArch->directory()->entries()) {
             auto e = kArch->directory()->entry(entry);
@@ -52,24 +52,123 @@ void CompressedFileModel::setUrl(const QUrl &url)
     emit this->postListChanged();
 }
 
+QString CompressedFile::checkFileName(const QUrl &where, const QString &fileName, const bool isExtract)
+{
+    QString newName = fileName;
+    int index = newName.lastIndexOf(".");
+    if(index != -1)
+    {
+        newName = newName.mid(0, index);
+    }
+    QString dir_str = where.toString() + "/" + newName;
+    dir_str.replace(QString("file://"), QString(""));
+    QDir dir;
+
+    if(isExtract)
+    {
+        QString folderName = dir_str;
+        if(!dir.exists(folderName))
+        {
+            return newName;
+        }else
+        {
+            int count = 1;
+            while(dir.exists(dir_str + QString::number(count)))
+            {
+                count++;
+            }
+            return newName + QString::number(count);
+        }
+    }else
+    {
+        if(!dir.exists(dir_str + ".zip"))
+        {
+            return newName;
+        }else
+        {
+            int count = 1;
+            while(dir.exists(dir_str + QString::number(count) + ".zip"))
+            {
+                count++;
+            }
+            return newName + QString::number(count);
+        }
+    }
+}
+
+void CompressedFile::extractWithThread(const QUrl &where, const QString &directory)
+{
+    QFutureWatcher<QString> *watcher = new QFutureWatcher<QString>;
+    connect(watcher, &QFutureWatcher<uint>::finished, [&, watcher]()
+    {
+        const auto filePath = watcher->future().result();
+        // qDebug() << "extractWithThread finish filePath == " << filePath;
+        emit this->finishZip(filePath);
+        watcher->deleteLater();
+    });
+
+    const auto func = [=]() -> QString
+    {
+        QString name = checkFileName(where, directory, true);
+        QString signalsName = where.toString() + "/" + name;
+        // qDebug() << "!!!!extractWithThread signalsName == " << signalsName;
+        emit this->startZip(signalsName);
+        // qDebug() << "!!!!extractWithThread name == " << name << "  where == " << where;
+        extract(where, name);
+        return signalsName;
+    };
+
+    QFuture<QString> t1 = QtConcurrent::run(func);
+    watcher->setFuture(t1);
+}
+
 void CompressedFile::extract(const QUrl &where, const QString &directory)
 {
     if (!m_url.isLocalFile())
         return;
 
-    qDebug() << "@gadominguez File:fm.cpp Funcion: extractFile  "
-             << "URL: " << m_url << "WHERE: " << where.toString() << " DIR: " << directory;
+    // qDebug() << "@gadominguez File:fm.cpp Funcion: extractFile  "
+    //          << "URL: " << m_url << "WHERE: " << where.toString() << " DIR: " << directory;
 
     QString where_ = where.toLocalFile() + "/" + directory;
 
     auto kArch = CompressedFile::getKArchiveObject(m_url);
     kArch->open(QIODevice::ReadOnly);
-    qDebug() << "@gadominguez File:fm.cpp Funcion: extractFile  " << kArch->directory()->entries();
+    // qDebug() << "@gadominguez File:fm.cpp Funcion: extractFile  " << kArch->directory()->entries();
     assert(kArch->isOpen() == true);
     if (kArch->isOpen()) {
         bool recursive = true;
         kArch->directory()->copyTo(where_, recursive);
     }
+}
+
+
+bool CompressedFile::compressWithThread(const QVariantList &files, const QUrl &where, const QString &fileName, const int &compressTypeSelected)
+{
+    QFutureWatcher<QString> *watcher = new QFutureWatcher<QString>;
+    connect(watcher, &QFutureWatcher<QString>::finished, [&, watcher]()
+    {
+        const auto filePath = watcher->future().result();
+        // qDebug() << "compressWithThread finish filePath == " << filePath;
+        emit this->finishZip(filePath);
+        watcher->deleteLater();
+    });
+
+    const auto func = [=]() -> QString
+    {
+        QString name = checkFileName(where, fileName, false);
+        // qDebug() << "!!!!compressWithThread name == " << name << "  where == " << where;
+        QString signalsName = where.toString() + "/" + name + ".zip";
+        // qDebug() << "!!!!compressWithThread signalsName == " << signalsName;
+        emit this->startZip(signalsName);
+        compress(files, where, name, compressTypeSelected);
+        return signalsName;
+    };
+
+    QFuture<QString> t1 = QtConcurrent::run(func);
+    watcher->setFuture(t1);
+
+    return true;
 }
 
 /*
@@ -82,7 +181,7 @@ bool CompressedFile::compress(const QVariantList &files, const QUrl &where, cons
     bool error = true;
     assert(compressTypeSelected >= 0 && compressTypeSelected <= 8);
     for (auto uri : files) {
-        qDebug() << "@gadominguez File:fm.cpp Funcion: compress  " << QUrl(uri.toString()).toLocalFile() << " " << fileName;
+        // qDebug() << "@gadominguez File:fm.cpp Funcion: compress  " << QUrl(uri.toString()).toLocalFile() << " " << fileName;
 
         if (!QFileInfo(QUrl(uri.toString()).toLocalFile()).isDir()) {
             auto file = QFile(QUrl(uri.toString()).toLocalFile());
@@ -169,15 +268,15 @@ bool CompressedFile::compress(const QVariantList &files, const QUrl &where, cons
                     break;
                 }
                 default:
-                    qDebug() << "ERROR. COMPRESSED TYPE SELECTED NOT COMPATIBLE";
+                    // qDebug() << "ERROR. COMPRESSED TYPE SELECTED NOT COMPATIBLE";
                     break;
                 }
             } else {
-                qDebug() << "ERROR. CURRENT USER DOES NOT HAVE PEMRISSION FOR WRITE IN THE CURRENT DIRECTORY.";
+                // qDebug() << "ERROR. CURRENT USER DOES NOT HAVE PEMRISSION FOR WRITE IN THE CURRENT DIRECTORY.";
                 error = true;
             }
         } else {
-            qDebug() << "Dir: " << QUrl(uri.toString()).toLocalFile();
+            // qDebug() << "Dir: " << QUrl(uri.toString()).toLocalFile();
             auto dir = QDirIterator(QUrl(uri.toString()).toLocalFile(), QDirIterator::Subdirectories);
             switch (compressTypeSelected) {
             case 0: //.ZIP
@@ -188,11 +287,11 @@ bool CompressedFile::compress(const QVariantList &files, const QUrl &where, cons
                 while (dir.hasNext()) {
                     auto entrie = dir.next();
 
-                    qDebug() << entrie << " " << where.toString() << QFileInfo(entrie).isFile();
+                    // qDebug() << entrie << " " << where.toString() << QFileInfo(entrie).isFile();
                     if (QFileInfo(entrie).isFile() == true) {
                         auto file = QFile(entrie);
                         file.open(QIODevice::ReadOnly);
-                        qDebug() << entrie << entrie.remove(QUrl(where).toLocalFile(), Qt::CaseSensitivity::CaseSensitive);
+                        // qDebug() << entrie << entrie.remove(QUrl(where).toLocalFile(), Qt::CaseSensitivity::CaseSensitive);
                         error = kzip->writeFile(entrie.remove(QUrl(where).toLocalFile(), Qt::CaseSensitivity::CaseSensitive), // Mirror file path in compressed file from current directory
                                                 file.readAll(),
                                                 0100775,
@@ -217,11 +316,11 @@ bool CompressedFile::compress(const QVariantList &files, const QUrl &where, cons
                 while (dir.hasNext()) {
                     auto entrie = dir.next();
 
-                    qDebug() << entrie << " " << where.toString() << QFileInfo(entrie).isFile();
+                    // qDebug() << entrie << " " << where.toString() << QFileInfo(entrie).isFile();
                     if (QFileInfo(entrie).isFile() == true) {
                         auto file = QFile(entrie);
                         file.open(QIODevice::ReadOnly);
-                        qDebug() << entrie << entrie.remove(QUrl(where).toLocalFile(), Qt::CaseSensitivity::CaseSensitive);
+                        // qDebug() << entrie << entrie.remove(QUrl(where).toLocalFile(), Qt::CaseSensitivity::CaseSensitive);
                         error = ktar->writeFile(entrie.remove(QUrl(where).toLocalFile(), Qt::CaseSensitivity::CaseSensitive), // Mirror file path in compressed file from current directory
                                                 file.readAll(),
                                                 0100775,
@@ -248,11 +347,11 @@ bool CompressedFile::compress(const QVariantList &files, const QUrl &where, cons
                 while (dir.hasNext()) {
                     auto entrie = dir.next();
 
-                    qDebug() << entrie << " " << where.toString() << QFileInfo(entrie).isFile();
+                    // qDebug() << entrie << " " << where.toString() << QFileInfo(entrie).isFile();
                     if (QFileInfo(entrie).isFile() == true) {
                         auto file = QFile(entrie);
                         file.open(QIODevice::ReadOnly);
-                        qDebug() << entrie << entrie.remove(QUrl(where).toLocalFile(), Qt::CaseSensitivity::CaseSensitive);
+                        // qDebug() << entrie << entrie.remove(QUrl(where).toLocalFile(), Qt::CaseSensitivity::CaseSensitive);
                         error = k7zip->writeFile(entrie.remove(QUrl(where).toLocalFile(), Qt::CaseSensitivity::CaseSensitive), // Mirror file path in compressed file from current directory
                                                  file.readAll(),
                                                  0100775,
@@ -279,11 +378,11 @@ bool CompressedFile::compress(const QVariantList &files, const QUrl &where, cons
                 while (dir.hasNext()) {
                     auto entrie = dir.next();
 
-                    qDebug() << entrie << " " << where.toString() << QFileInfo(entrie).isFile();
+                    // qDebug() << entrie << " " << where.toString() << QFileInfo(entrie).isFile();
                     if (QFileInfo(entrie).isFile() == true) {
                         auto file = QFile(entrie);
                         file.open(QIODevice::ReadOnly);
-                        qDebug() << entrie << entrie.remove(QUrl(where).toLocalFile(), Qt::CaseSensitivity::CaseSensitive);
+                        // qDebug() << entrie << entrie.remove(QUrl(where).toLocalFile(), Qt::CaseSensitivity::CaseSensitive);
                         error = kAr->writeFile(entrie.remove(QUrl(where).toLocalFile(), Qt::CaseSensitivity::CaseSensitive), // Mirror file path in compressed file from current directory
                                                file.readAll(),
                                                0100775,
@@ -301,7 +400,7 @@ bool CompressedFile::compress(const QVariantList &files, const QUrl &where, cons
                 break;
             }
             default:
-                qDebug() << "ERROR. COMPRESSED TYPE SELECTED NOT COMPATIBLE";
+                // qDebug() << "ERROR. COMPRESSED TYPE SELECTED NOT COMPATIBLE";
                 break;
             }
         }
@@ -321,7 +420,7 @@ KArchive *CompressedFile::getKArchiveObject(const QUrl &url)
     /*
      * This checks depends on type COMPRESSED_MIMETYPES in file fmh.h
      */
-    qDebug() << "@gadominguez File: fmstatic.cpp Func: getKArchiveObject MimeType: " << FMH::getMime(url);
+    // qDebug() << "@gadominguez File: fmstatic.cpp Func: getKArchiveObject MimeType: " << FMH::getMime(url);
 
     if (FMH::getMime(url).contains("application/x-tar") || FMH::getMime(url).contains("application/x-compressed-tar")) {
         kArch = new KTar(url.toString().split(QString("file://"))[1]);
@@ -334,7 +433,7 @@ KArchive *CompressedFile::getKArchiveObject(const QUrl &url)
         kArch = new K7Zip(url.toString().split(QString("file://"))[1]);
 #endif
     } else {
-        qDebug() << "ERROR. COMPRESSED FILE TYPE UNKOWN " << url.toString();
+        // qDebug() << "ERROR. COMPRESSED FILE TYPE UNKOWN " << url.toString();
     }
 
     return kArch;

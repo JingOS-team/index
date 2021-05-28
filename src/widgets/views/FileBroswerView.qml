@@ -1,6 +1,5 @@
 /*
  *   Copyright 2018 Camilo Higuita <milo.h@aol.com>
- *   SPDX-FileCopyrightText: (C) 2021 Wangrui <Wangrui@jingos.com>   
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,6 +23,11 @@ import QtQuick.Layouts 1.3
 
 import org.kde.kirigami 2.8 as Kirigami
 import org.kde.mauikit 1.3 as Maui
+import org.maui.index 1.0 as Index
+
+import "../previewer"
+
+//import "private" as Private
 
 /**
  * FileBrowser
@@ -36,9 +40,12 @@ import org.kde.mauikit 1.3 as Maui
  * This component functionality can be easily expanded to be more feature rich.
  *
  */
-Maui.Page {
+Maui.Page
+{
     id: control
 
+
+    property alias theRealBrowser : _browser
     /**
      * currentPath : url
      * The current path of the directory URL.
@@ -132,7 +139,8 @@ Maui.Page {
     /**
      * selectionBar : SelectionBar
      */
-    property Maui.SelectionBar selectionBar : root_selectionBar//null //TODO remove
+    // property Maui.SelectionBar selectionBar : root_selectionBar//null //TODO remove
+    property SelectionBar selectionBar : root_selectionBar
 
 
     //relevant menus to file item and the browserview
@@ -226,46 +234,57 @@ Maui.Page {
 
     showTitle: false
     headBar.visible: false
-    headBar.leftContent: ToolButton {
+    headBar.leftContent: ToolButton
+    {
         text: i18n("Back")
         icon.name: "go-previous"
         onClicked: control.quitSearch()
         visible: control.isSearchView
     }
 
-    headBar.middleContent: Maui.TextField {
+    headBar.middleContent: Maui.TextField
+    {
         id: _searchField
         Layout.fillWidth: true
         Layout.maximumWidth: 500
-        placeholderText: _filterButton.checked ? i18n("Filter") : ("Search")
+        placeholderText: _filterButton.checked ? i18n("Filter") : i18n("Search")
         inputMethodHints: Qt.ImhNoAutoUppercase
 
-        onAccepted: {
-            if(_filterButton.checked) {
+        onAccepted:
+        {
+            if(_filterButton.checked)
+            {
                 control.view.filter = text
-            }else {
+            }else
+            {
                 control.search(text)
             }
         }
-        onCleared:  {
-            if(_filterButton.checked) {
+        onCleared:
+        {
+            if(_filterButton.checked)
+            {
                 control.view.filter = ""
             }
         }
-        onTextChanged: {
+        onTextChanged:
+        {
             if(_filterButton.checked)
                 _searchField.accepted()
 
         }
         Keys.enabled: _filterButton.checked
-        Keys.onPressed: {
+        Keys.onPressed:
+        {
             // Shortcut for clearing selection
-            if(event.key == Qt.Key_Up) {
+            if(event.key == Qt.Key_Up)
+            {
                 control.currentView.forceActiveFocus()
             }
         }
 
-        actions.data: ToolButton {
+        actions.data: ToolButton
+        {
             id: _filterButton
             icon.name: "view-filter"
             //             text: i18n("Filter")
@@ -281,14 +300,31 @@ Maui.Page {
         }
     }
 
-    Loader {
+    // footBar.visible: String(control.currentPath).startsWith("trash:/")
+
+    // footBar.leftSretch: false
+    // footerPositioning: ListView.InlineFooter
+
+    // footBar.rightContent: ToolButton
+    // {
+    //     visible: String(control.currentPath).startsWith("trash:/")
+    //     icon.name: "trash-empty"
+    //     text: i18n("Empty Trash")
+    //     onClicked: Maui.FM.emptyTrash()
+    // }
+
+    Loader
+    {
         id: dialogLoader
+        // 		active: item && item.visible
     }
 
-    Component {
+    Component
+    {
         id: removeDialogComponent
 
-        Maui.FileListingDialog {
+        Maui.FileListingDialog
+        {
             id: _removeDialog
            property double freedSpace : calculateFreedSpace(urls)
             title:  i18n("Removing %1 files", urls.length)
@@ -297,24 +333,29 @@ Maui.Page {
             acceptButton.text: i18n("Trash")
             acceptButton.visible: Maui.Handy.isLinux
 
-            actions: Action {
+            actions: Action
+            {
                 text: i18n("Cancel")
                 onTriggered: _removeDialog.close()
             }
 
-            onRejected: {
+            onRejected:
+            {
                 Maui.FM.removeFiles(urls)
                 close()
             }
 
-            onAccepted: {
+            onAccepted:
+            {
                 Maui.FM.moveToTrash(urls)
                 close()
             }
 
-            function calculateFreedSpace(urls) {
+            function calculateFreedSpace(urls)
+            {
                 var size = 0
-                for(var url of urls) {
+                for(var url of urls)
+                {
                     size += parseFloat(Maui.FM.getFileInfo(url).size)
                 }
 
@@ -323,16 +364,20 @@ Maui.Page {
         }
     }
 
-    Component {
+    Component
+    {
         id: newDialogComponent
 
-        Maui.NewDialog {
+        Maui.NewDialog
+        {
             id: _newDialog
             title: i18n("New %1", _newActions.currentIndex === 0 ? "folder" : "file" )
             message: i18n("Create a new folder or a file with a custom name")
             acceptButton.text: i18n("Create")
-            onFinished: {
-                switch(_newActions.currentIndex) {
+            onFinished:
+            {
+                switch(_newActions.currentIndex)
+                {
                     case 0: control.currentFMList.createDir(text); break;
                     case 1: Maui.FM.createFile(control.currentPath, text); break;
                 }
@@ -340,19 +385,22 @@ Maui.Page {
 
             textEntry.placeholderText: i18n("Name")
 
-            Maui.ToolActions  {
+            Maui.ToolActions
+            {
                 id: _newActions
                 expanded: true
                 autoExclusive: true
                 display: ToolButton.TextBesideIcon
                 currentIndex: String(_newDialog.textEntry.text).indexOf(".") > 0 ? 1 : 0
 
-                Action {
+                Action
+                {
                     icon.name: "folder-new"
                     text: i18n("Folder")
                 }
 
-                Action {
+                Action
+                {
                     icon.name: "document-new"
                     text: i18n("File")
                 }
@@ -360,12 +408,15 @@ Maui.Page {
         }
     }
 
-    Component {
+    Component
+    {
         id: renameDialogComponent
 
-        Maui.NewDialog {
+        Maui.NewDialog
+        {
             property var item : control.currentFMList ? control.currentFMModel.get(control.currentIndex) : ({})
             title: i18n("Rename")
+//             message: i18n("Change the name of a file or folder")
             template.iconSource: item.icon
             template.imageSource: item.thumbnail
             textEntry.text: item.label
@@ -377,332 +428,461 @@ Maui.Page {
         }
     }
 
-    BrowserMenu { id: browserMenu }
-
-    TrashNormalMenu {
-        id: trashNormalMenu
+    BrowserMenu 
+    { 
+        id: browserMenu 
+        modal:true
+        closePolicy:Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        Overlay.modal: Rectangle {
+            color: "#00000000"
+        }
     }
 
-    TrashFileMenu  {
-        id: trashItemFileMenu
-        width: 380
+    TrashNormalMenu //回收站 右键空白menu
+    {
+        id: trashNormalMenu
 
-        onRestoreClicked: {
-            leftMenuData.restoreFromTrash([item.nickname])
+        modal:true
+        closePolicy:Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        Overlay.modal: Rectangle {
+            color: "#00000000"
+        }
+    }
+
+    TrashFileMenu //回收站 右键文件menu
+    {
+        id: trashItemFileMenu
+
+        modal:true
+        closePolicy:Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        Overlay.modal: Rectangle {
+            color: "#00000000"
         }
 
-        onInfoClicked: {
+        onRestoreClicked:
+        {
+            leftMenuData.restoreFromTrash([item.nickname])
+            root.leftMenu.refreshCollectionMenu()
+
+            if(item.mime.indexOf("image/jpeg") != -1
+            || item.mime.indexOf("video") != -1)//对于生成了缩略图的文件来说，恢复时，直接干掉回收站的缩略图
+            {
+                var index = item.path.lastIndexOf(".")
+                var newPath = item.path.substring(0, index)//path/name
+                index = newPath.lastIndexOf("/")
+                var startPath = newPath.substring(0, index + 1);//path/
+                var endPath = newPath.substring(index + 1, newPath.length)//name
+                var tmpPreview = startPath + "." + endPath + ".jpg"
+                leftMenuData.removeSth(tmpPreview)
+            }
+
+        }
+
+        onInfoClicked:
+        {
             root_fileInfo.show(index)
         }
 
-        onRemoveClicked: {
+        onRemoveClicked://从回收站真正的删除
+        {
             root.currentItem = item
-            jDialog.text = "Are you sure you want to delete the file?"
+            jDialog.text = i18n("Are you sure you want to delete the file?")
             jDialogType = 1
             jDialog.open()
         }
     }
 
-    FolderMenu {
+    FolderMenu //常规目录 文件夹右键menu
+    {
         id: folderItemMenu
-        width: 380
+        // width: 380
+
+        modal:true
+        closePolicy:Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        Overlay.modal: Rectangle {
+            color: "#00000000"
+        }
 
         onBookmarkClicked: control.bookmarkFolder([item.path])
 
-        onOpenModeClicked: {
+        onOpenModeClicked:
+        {
             root.openWith(item)
         }
 
-        onCopyClicked: {
+        onCopyClicked:
+        {
             if(item)
                 control.copy([item.path])
         }
 
-        onCutClicked: {
+        onCutClicked:
+        {
             if(item)
                 control.cut([item.path])
         }
 
-        onRenameClicked: {
+        onRenameClicked:
+        {
             root_renameSelectionBar.append(item.path, item)
         }
 
-        onRemoveClicked: {
+        onRemoveClicked:
+        {
             Maui.FM.moveToTrash([item.path])
+            leftMenuData.addFolderToCollection(item.path.toString(), true, true)
         }
 
-        onInfoClicked: {
+        onInfoClicked:
+        {
             root_fileInfo.show(index)
         }
 
-        onTagsClicked: {
-
+        onTagsClicked:
+        {
+            root_tagMenu.show(index)
         }
 
-        onCompressClicked:  {
-            dialogLoader.sourceComponent= root_compressDialogComponent
-            dialog.urls = [item.path]
-            dialog.open()
+        onCompressClicked:
+        {
+            _compressedFile.compressWithThread([item.path], currentPath, item.label, 0)
         }
 
-        onFavClicked: {
-            leftMenuData.addFolderToCollection(item.path.toString())
+        onFavClicked:
+        {
+            leftMenuData.addFolderToCollection(item.path.toString(), false, true)
         }
     }
 
-    ZipFileMenu {
+    ZipFileMenu //常规目录 需要压缩的文件右键menu 带有openmode
+    {
         id: zipFileItemMenu
-        width: 380
+        // width: 380
+
+        modal:true
+        closePolicy:Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        Overlay.modal: Rectangle {
+            color: "#00000000"
+        }
 
         onBookmarkClicked: control.bookmarkFolder([item.path])
 
-        onOpenModeClicked: {
+        onOpenModeClicked:
+        {
             root.openWith(item)
         }
 
-        onCopyClicked: {
+        onCopyClicked:
+        {
             if(item)
                 control.copy([item.path])
         }
 
-        onCutClicked: {
+        onCutClicked:
+        {
             if(item)
                 control.cut([item.path])
         }
 
-        onRenameClicked: {
+        onRenameClicked:
+        {
             root_renameSelectionBar.append(item.path, item)
         }
 
-        onRemoveClicked: {
+        onRemoveClicked:
+        {
             moveToTrash(item)
         }
 
-        onInfoClicked: {
+        onInfoClicked:
+        {
             root_fileInfo.show(index)
         }
 
-        onTagsClicked: {
-
+        onTagsClicked:
+        {
+            root_tagMenu.show(index)
         }
 
-        onCompressClicked: {
-            dialogLoader.sourceComponent= root_compressDialogComponent
-            dialog.urls = [item.path]
-            dialog.open()
+        onCompressClicked:
+        {
+            _compressedFile.compressWithThread([item.path], currentPath, item.label, 0)
         }
     }
 
-    ZipFileMenuWithoutOM {
+    ZipFileMenuWithoutOM //常规目录 需要压缩的文件右键menu 木有openmode
+    {
         id: zipFileItemMenuWithoutOM
-        width: 380
+        // width: 380
+
+        modal:true
+        closePolicy:Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        Overlay.modal: Rectangle {
+            color: "#00000000"
+        }
 
         onBookmarkClicked: control.bookmarkFolder([item.path])
 
-        onOpenModeClicked:  {
+        onOpenModeClicked:
+        {
             root.openWith(item)
         }
 
-        onCopyClicked:  {
+        onCopyClicked:
+        {
             if(item)
                 control.copy([item.path])
         }
 
-        onCutClicked:  {
+        onCutClicked:
+        {
             if(item)
                 control.cut([item.path])
         }
 
-        onRenameClicked: {
+        onRenameClicked:
+        {
             root_renameSelectionBar.append(item.path, item)
         }
 
-        onRemoveClicked: {
+        onRemoveClicked:
+        {
             moveToTrash(item)
         }
 
-        onInfoClicked:  {
+        onInfoClicked:
+        {
             root_fileInfo.show(index)
         }
 
-        onTagsClicked: {
-
+        onTagsClicked:
+        {
+            root_tagMenu.show(index)
         }
 
-        onCompressClicked: {
-            dialogLoader.sourceComponent= root_compressDialogComponent
-            dialog.urls = [item.path]
-            dialog.open()
+        onCompressClicked:
+        {
+            _compressedFile.compressWithThread([item.path], currentPath, item.label, 0)
         }
     }
 
-    UnzipFileMenu  {
+    UnzipFileMenu //常规目录 需要解压缩的文件右键menu 有open mode
+    {
         id: unzipFileItemMenu
-        width: 380
+        // width: 380
+
+        modal:true
+        closePolicy:Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        Overlay.modal: Rectangle {
+            color: "#00000000"
+        }
 
         onBookmarkClicked: control.bookmarkFolder([item.path])
 
-        onOpenModeClicked: {
+        onOpenModeClicked:
+        {
             root.openWith(item)
         }
 
-        onCopyClicked: {
+        onCopyClicked:
+        {
             if(item)
                 control.copy([item.path])
         }
 
-        onCutClicked: {
+        onCutClicked:
+        {
             if(item)
                 control.cut([item.path])
         }
 
-        onRenameClicked:  {
+        onRenameClicked:
+        {
             root_renameSelectionBar.append(item.path, item)
         }
 
-        onRemoveClicked: {
+        onRemoveClicked:
+        {
             moveToTrash(item)
         }
 
-        onInfoClicked: {
+        onInfoClicked:
+        {
             root_fileInfo.show(index)
         }
 
-        onTagsClicked: {
-
+        onTagsClicked:
+        {
+            root_tagMenu.show(index)
         }
 
-        onUncompressClicked: {
+        onUncompressClicked:
+        {
             _compressedFile.url = item.path
-            dialogLoader.sourceComponent= root_extractDialogComponent
-            dialog.open()
+            _compressedFile.extractWithThread(currentPath, item.label)
         }
     }
 
-    UnzipFileMenuWithoutOM  {
+    UnzipFileMenuWithoutOM //常规目录 需要解压缩的文件右键menu 有open mode
+    {
         id: unzipFileItemMenuWithoutOM
-        width: 380
+        // width: 380
+
+        modal:true
+        closePolicy:Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        Overlay.modal: Rectangle {
+            color: "#00000000"
+        }
 
         onBookmarkClicked: control.bookmarkFolder([item.path])
 
-        onOpenModeClicked: {
+        onOpenModeClicked:
+        {
             root.openWith(item)
         }
 
-        onCopyClicked: {
+        onCopyClicked:
+        {
             if(item)
                 control.copy([item.path])
         }
 
-        onCutClicked: {
+        onCutClicked:
+        {
             if(item)
                 control.cut([item.path])
         }
 
-        onRenameClicked:  {
+        onRenameClicked:
+        {
             root_renameSelectionBar.append(item.path, item)
         }
 
-        onRemoveClicked:  {
+        onRemoveClicked:
+        {
             moveToTrash(item)
         }
 
-        onInfoClicked: {
+        onInfoClicked:
+        {
             root_fileInfo.show(index)
         }
 
-        onTagsClicked: {
-
+        onTagsClicked:
+        {
+            root_tagMenu.show(index)
         }
 
-        onUncompressClicked: {
+        onUncompressClicked:
+        {
+            // _compressedFile.url = item.path
+            // dialogLoader.sourceComponent= root_extractDialogComponent
+            // dialog.open()
             _compressedFile.url = item.path
-            dialogLoader.sourceComponent= root_extractDialogComponent
-            dialog.open()
+            _compressedFile.extractWithThread(currentPath, item.label)
         }
     }
 
-    Connections {
+    Connections
+    {
         enabled: control.currentView
         target: control.currentView
         ignoreUnknownSignals: true
 
-        function onKeyPress(event) {
+        function onKeyPress(event)
+        {
             const index = control.currentIndex
             const item = control.currentFMModel.get(index)
 
             // Shortcuts for refreshing
-            if((event.key === Qt.Key_F5)) {
+            if((event.key === Qt.Key_F5))
+            {
                 control.currentFMList.refresh()
             }
 
             // Shortcuts for renaming
-            if((event.key === Qt.Key_F2)) {
+            if((event.key === Qt.Key_F2))
+            {
                 dialogLoader.sourceComponent = renameDialogComponent
                 dialog.open()
             }
 
             // Shortcuts for selecting file
-            if((event.key === Qt.Key_A) && (event.modifiers & Qt.ControlModifier)) {
+            if((event.key === Qt.Key_A) && (event.modifiers & Qt.ControlModifier))
+            {
                 selectAll()
             }
 
-            if((event.key === Qt.Key_Left || event.key === Qt.Key_Right || event.key === Qt.Key_Down || event.key === Qt.Key_Up) && (event.modifiers & Qt.ControlModifier) && (event.modifiers & Qt.ShiftModifier)) {
-                if(control.selectionBar && control.selectionBar.contains(item.path)) {
-                    control.selectionBar.removeAtUri(item.path)
-                }else {
+            if((event.key === Qt.Key_Left || event.key === Qt.Key_Right || event.key === Qt.Key_Down || event.key === Qt.Key_Up) && (event.modifiers & Qt.ControlModifier) && (event.modifiers & Qt.ShiftModifier))
+            {
+                if(root_selectionBar && root_selectionBar.contains(item.path))
+                {
+                    root_selectionBar.removeAtUri(item.path)
+                }else
+                {
                     // addToSelection(item)
                 }
             }
 
             //shortcut for opening files
-            if(event.key === Qt.Key_Return) {
+            if(event.key === Qt.Key_Return)
+            {
                 indexHistory.push(index)
                 control.openItem(index)
             }
 
             // Shortcut for pasting an item
-            if((event.key == Qt.Key_V) && (event.modifiers & Qt.ControlModifier)) {
+            if((event.key == Qt.Key_V) && (event.modifiers & Qt.ControlModifier))
+            {
                 control.paste(Maui.Handy.getClipboard().urls)
             }
 
             // Shortcut for cutting an item
-            if((event.key == Qt.Key_X) && (event.modifiers & Qt.ControlModifier)) {
+            if((event.key == Qt.Key_X) && (event.modifiers & Qt.ControlModifier))
+            {
                 const urls = filterSelection(control.currentPath, item.path)
                 control.cut(urls)
             }
 
             // Shortcut for copying an item
-            if((event.key == Qt.Key_C) && (event.modifiers & Qt.ControlModifier)) {
+            if((event.key == Qt.Key_C) && (event.modifiers & Qt.ControlModifier))
+            {
                 const urls = filterSelection(control.currentPath, item.path)
                 control.copy(urls)
             }
 
             // Shortcut for removing an item
-            if(event.key === Qt.Key_Delete) {
+            if(event.key === Qt.Key_Delete)
+            {
                 const urls = filterSelection(control.currentPath, item.path)
                 control.remove(urls)
             }
 
             // Shortcut for going back in browsing history
-            if(event.key === Qt.Key_Backspace || event.key == Qt.Key_Back) {
-                if(control.selectionBar && control.selectionBar.count> 0) {
-                    control.selectionBar.clear()
-                } else {
+            if(event.key === Qt.Key_Backspace || event.key == Qt.Key_Back)
+            {
+                if(root_selectionBar && root_selectionBar.items.length > 0)
+                {
+                    root_selectionBar.clear()
+                }
+                else
+                {
                     control.goBack()
                 }
             }
 
             // Shortcut for clearing selection and filtering
-            if(event.key === Qt.Key_Escape) {
-                if(control.selectionBar && control.selectionBar.count > 0)
-                    control.selectionBar.clear()
+            if(event.key === Qt.Key_Escape) //TODO not working, the event is not catched or emitted or is being accepted else where?
+            {
+                if(root_selectionBar && root_selectionBar.items.length > 0)
+                    root_selectionBar.clear()
 
                     control.view.filter = ""
             }
 
             //Shortcut for opening filtering
-            if((event.key === Qt.Key_F) && (event.modifiers & Qt.ControlModifier))  {
+            if((event.key === Qt.Key_F) && (event.modifiers & Qt.ControlModifier))
+            {
                 control.headBar.visible = !control.headBar.visible
                 _searchField.forceActiveFocus()
             }
@@ -710,81 +890,115 @@ Maui.Page {
             control.keyPress(event)
         }
 
-        function onItemsSelected(indexes) {
-            if(indexes.length)  {
+        function onItemsSelected(indexes)
+        {
+            if(indexes.length)
+            {
                 control.currentIndex = indexes[0]
                 selectIndexes(indexes)
             }
         }
 
-        function onItemClicked(index) {
+        function onItemClicked(index)
+        {
             control.currentIndex = index
             indexHistory.push(index)
             control.itemClicked(index)
             control.currentView.forceActiveFocus()
         }
 
-        function onItemDoubleClicked(index)  {
+        function onItemDoubleClicked(index)
+        {
             control.currentIndex = index
             indexHistory.push(index)
             control.itemDoubleClicked(index)
             control.currentView.forceActiveFocus()
         }
 
-        function onItemRightClicked(index) {
+        function onItemRightClicked(index)//listview gridview 的右键 长按都在这个信号中处理
+        {
+            if(root.selectionMode)
+            {
+                return
+            }
+
             const item = control.currentFMModel.get(index)
-            if(control.currentFMList.pathType !== Maui.FMList.TRASH_PATH && control.currentFMList.pathType !== Maui.FMList.REMOTE_PATH) {   
-                if(item.isdir == "true") {
+            //根据右键点击的不同类型 来组织右键菜单
+            if(control.currentFMList.pathType !== Maui.FMList.TRASH_PATH && control.currentFMList.pathType !== Maui.FMList.REMOTE_PATH)
+            {   
+                if(item.isdir == "true")
+                {
                     folderItemMenu.show(index)
-                }else {
-                    if(item.mime.includes("x-7z-compressed") || item.mime.includes("x-tar") || item.mime.includes("zip")) {
+                }else
+                {
+                    // if(item.mime.includes("x-7z-compressed") || item.mime.includes("x-tar") || item.mime.includes("zip"))
+                    if(Maui.FM.checkFileType(Maui.FMList.COMPRESSED, item.mime))
+                    {
                         var services = Maui.KDE.services(item.path)
-                        if(services.length >= 2) {
+                        if(services.length >= 2)
+                        {
                             unzipFileItemMenu.show(index)
-                        }else {
+                        }else
+                        {
                             unzipFileItemMenuWithoutOM.show(index)
                         }
-                    }else {
+                        
+                    }else
+                    {
                         var services = Maui.KDE.services(item.path)
-                        if(item.mime.indexOf("video") != -1 || Maui.FM.checkFileType(Maui.FMList.IMAGE, item.mime) || (item.mime.indexOf("audio") != -1)) {   
-                            if(services.length >= 1) {
+                        if(item.mime.indexOf("video") != -1 || Maui.FM.checkFileType(Maui.FMList.IMAGE, item.mime) || (item.mime.indexOf("audio") != -1))//文件管理器自己支持的
+                        {   
+                            if(services.length >= 1)
+                            {
                                 zipFileItemMenu.show(index)
-                            }else {
+                            }else
+                            {
                                 zipFileItemMenuWithoutOM.show(index)
                             }
-                        }else {
-                            if(services.length >= 2) {
+                        }else//文件管理器自己不支持的
+                        {
+                            if(services.length >= 2)
+                            {
                                 zipFileItemMenu.show(index)
-                            }else {
+                            }else
+                            {
                                 zipFileItemMenuWithoutOM.show(index)
                             }
                         }
                     }
                 }
-            }else if(control.currentFMList.pathType === Maui.FMList.TRASH_PATH) {
+            }else if(control.currentFMList.pathType === Maui.FMList.TRASH_PATH)//从回收站还原
+            {
                 trashItemFileMenu.show(index)
             }
 
             root_menuSelectionBar.append(item.path, item)
         }
 
-        function onItemToggled(index) {
+        function onItemToggled(index)
+        {
             const item = control.currentFMModel.get(index)
 
-            if(control.selectionBar && control.selectionBar.contains(item.path)) {
-                control.selectionBar.removeAtUri(item.path)
-            }else {
+            if(root_selectionBar && root_selectionBar.contains(item.path))
+            {
+                root_selectionBar.removeAtUri(item.path)
+            }else
+            {
                 addToSelection(item, index)
             }
             control.itemLeftEmblemClicked(index)
             control.currentView.forceActiveFocus()
         }
 
-        function onAreaClicked(mouse) {
-            if(!Kirigami.Settings.isMobile && mouse.button === Qt.RightButton) {
-                if(String(root.currentPath).startsWith("trash:/")) {
+        function onAreaClicked(mouse)
+        {
+            if(!Kirigami.Settings.isMobile && mouse.button === Qt.RightButton)
+            {
+                if(String(root.currentPath).startsWith("trash:/"))
+                {
                     trashNormalMenu.show(control)
-                }else if(!root.isSpecialPath) {
+                }else if(!root.isSpecialPath)
+                {
                     currentBrowser.browserMenu.show()
                 } 
             }
@@ -794,22 +1008,27 @@ Maui.Page {
                     control.currentView.forceActiveFocus()
         }
 
-        function onAreaRightClicked(mouse) {
-            if(String(root.currentPath).startsWith("trash:/")) {
+        function onAreaRightClicked(mouse)
+        {
+            if(String(root.currentPath).startsWith("trash:/"))
+            {
                 trashNormalMenu.show(control)
-            }else if(!root.isSpecialPath) {
+            }else if(!root.isSpecialPath)
+            {
                 currentBrowser.browserMenu.show()
             }  
         }
     }
 
-    StackView {
+    StackView
+    {
         id: _stackView
 
         anchors.fill: parent
         clip: true
 
-        initialItem: DropArea {
+        initialItem: DropArea
+        {
             id: _dropArea
             property alias currentView : _browser.currentView
             property alias currentFMList : _browser.currentFMList
@@ -817,8 +1036,10 @@ Maui.Page {
             property alias filter: _browser.filter
             property alias title : _browser.title
 
-            onDropped: {
-                if(drop.urls) {
+            onDropped:
+            {
+                if(drop.urls)
+                {
                     _dropMenu.urls = drop.urls.join(",")
                     _dropMenu.popup()
                     control.urlsDropped(drop.urls)
@@ -827,36 +1048,44 @@ Maui.Page {
 
             opacity:  _dropArea.containsDrag ? 0.5 : 1
 
-            BrowserItem {
+            BrowserItem
+            {
                 id: _browser
                 anchors.fill: parent
                 selectionMode: control.selectionMode
             }
 
-            Menu  {
+            Menu
+            {
                 id: _dropMenu
                 property string urls
                 enabled: Maui.FM.getFileInfo(control.currentPath).isdir == "true"
 
-                MenuItem {
+                MenuItem
+                {
                     text: i18n("Copy here")
-                    onTriggered: {
+                    onTriggered:
+                    {
                         const urls = _dropMenu.urls.split(",")
                         Maui.FM.copy(urls, control.currentPath, false)
                     }
                 }
 
-                MenuItem {
+                MenuItem
+                {
                     text: i18n("Move here")
-                    onTriggered: {
+                    onTriggered:
+                    {
                         const urls = _dropMenu.urls.split(",")
                         Maui.FM.cut(urls, control.currentPath)
                     }
                 }
 
-                MenuItem {
+                MenuItem
+                {
                     text: i18n("Link here")
-                    onTriggered: {
+                    onTriggered:
+                    {
                         const urls = _dropMenu.urls.split(",")
                         for(var i in urls)
                             Maui.FM.createSymlink(urls[i], control.currentPath)
@@ -865,17 +1094,20 @@ Maui.Page {
 
                 MenuSeparator {}
 
-                MenuItem {
+                MenuItem
+                {
                     text: i18n("Cancel")
                     onTriggered: _dropMenu.close()
                 }
             }
         }
 
-        Component {
+        Component
+        {
             id: _searchBrowserComponent
 
-           BrowserItem {
+           BrowserItem
+            {
                 id: _searchBrowser
                 objectName: "searchView"
                 settings.viewType: control.settings.viewType === Maui.FMList.MILLERS_VIEW ? Maui.FMList.LIST_VIEW : control.settings.viewType // do not use millersview it does not makes sense since search does not follow a path url structures
@@ -883,7 +1115,8 @@ Maui.Page {
         }
     }
 
-    Component.onCompleted: {
+    Component.onCompleted:
+    {
         control.currentView.forceActiveFocus()
     }
 
@@ -891,38 +1124,46 @@ Maui.Page {
     /**
      *
      **/
-    function copy(urls) {
-        if(urls.length <= 0) {
+    function copy(urls)
+    {
+        if(urls.length <= 0)
+        {
             return
         }
-        showToast("File has been copied")
+        showToast(i18n("File has been copied"))
         Maui.Handy.copyToClipboard({"urls": urls}, false)
     }
 
     /**
      *
      **/
-    function cut(urls) {
-        if(urls.length <= 0) {
+    function cut(urls)
+    {
+        if(urls.length <= 0)
+        {
             return
         }
-        showToast("File has been cut")
+        showToast(i18n("File has been cut"))
         Maui.Handy.copyToClipboard({"urls": urls}, true)
     }
 
     /**
      *
      **/
-    function paste() {
+    function paste()
+    {
         const data = Maui.Handy.getClipboard()
         const urls = data.urls
 
-        if(!urls) {
+        if(!urls)
+        {
             return
         }
-        if(data.cut)  {
+        if(data.cut)
+        {
             control.currentFMList.cutInto(urls)
-        }else {
+        }else
+        {
             control.currentFMList.copyInto(urls)
         }
     }
@@ -930,8 +1171,10 @@ Maui.Page {
     /**
      *
      **/
-    function remove(urls) {
-        if(urls.length <= 0) {
+    function remove(urls)
+    {
+        if(urls.length <= 0)
+        {
             return
         }
 
@@ -943,29 +1186,42 @@ Maui.Page {
     /**
      *
      **/
-    function openItem(index) {
+    function openItem(index)
+    {
         const item = control.currentFMModel.get(index)
         const path = item.path
 
-        switch(control.currentFMList.pathType) {
+        switch(control.currentFMList.pathType)
+        {
             case Maui.FMList.CLOUD_PATH: //TODO deprecrated and needs to be removed or clean up for 1.1
-                if(item.isdir === "true") {
+                if(item.isdir === "true")
+                {
                     control.openFolder(path)
-                } else {
+                }
+                else
+                {
                     Maui.FM.openCloudItem(item)
                 }
                 break;
             default:
-                if(control.selectionMode && item.isdir == "false") {
-                    if(control.selectionBar && control.selectionBar.contains(item.path)) {
-                        control.selectionBar.removeAtPath(item.path)
-                    }else {
+                if(control.selectionMode && item.isdir == "false")
+                {
+                    if(root_selectionBar && root_selectionBar.contains(item.path))
+                    {
+                        root_selectionBar.removeAtPath(item.path)
+                    }else
+                    {
                         addToSelection(item, index)
                     }
-                } else {
-                    if(item.isdir == "true")  {
+                }
+                else
+                {
+                    if(item.isdir == "true")
+                    {
                         control.openFolder(path)
-                    }  else {
+                    }
+                    else
+                    {
                         control.openFile(path)
                     }
                 }
@@ -975,55 +1231,67 @@ Maui.Page {
     /**
      *
      **/
-    function openFile(path) {
+    function openFile(path)
+    {
         Maui.FM.openUrl(path)
     }
 
     /**
      *
      **/
-    function openFolder(path) {
-        if(!String(path).length) {
+    function openFolder(path)
+    {
+        if(!String(path).length)
+        {
             return;
         }
 
-        if(control.isSearchView) {
+        if(control.isSearchView)
+        {
             control.quitSearch()
         }
 
         control.currentPath = path
     }
 
-    function refreshCurrentPath() {
+    function refreshCurrentPath()
+    {
+        // openFolder(control.currentFMList.getPath())
         control.currentFMList.refresh()
     }
 
     /**
      *
      **/
-    function goBack(){
+    function goBack()
+    {
         openFolder(control.currentFMList.previousPath())
+        //        control.currentIndex = indexHistory.pop()
     }
 
     /**
      *
      **/
-    function goForward() {
+    function goForward()
+    {
         openFolder(control.currentFMList.posteriorPath())
     }
 
     /**
      *
      **/
-    function goUp() {
+    function goUp()
+    {
         openFolder(control.currentFMList.parentPath)
     }
 
     /**
      *
      **/
-    function bookmarkFolder(paths){
-        for(var i in paths) {
+    function bookmarkFolder(paths) //multiple paths
+    {
+        for(var i in paths)
+        {
             Maui.FM.bookmark(paths[i])
         }
     }
@@ -1032,8 +1300,10 @@ Maui.Page {
     /**
      *
      **/
-    function openSearch() {
-        if(!control.isSearchView) {
+    function openSearch()
+    {
+        if(!control.isSearchView)
+        {
             _stackView.push(_searchBrowserComponent, StackView.Immediate)
         }
         control.headBar.visible= true
@@ -1043,14 +1313,16 @@ Maui.Page {
     /**
      *
      **/
-    function quitSearch(){
+    function quitSearch()
+    {
         _stackView.pop(StackView.Immediate)
     }
 
     /**
      *
      **/
-    function search(query) {
+    function search(query)
+    {
         openSearch()
         _searchField.text = query
         _stackView.currentItem.title = i18n("Search: %1").arg(query)
@@ -1060,7 +1332,8 @@ Maui.Page {
     /**
      *
      **/
-    function newItem() {
+    function newItem()
+    {
         dialogLoader.sourceComponent= newDialogComponent
         dialog.open()
         dialog.forceActiveFocus()
@@ -1069,17 +1342,23 @@ Maui.Page {
     /**
      * Filters the content of the selection to the current path. The currentPath must be a directory, so the selection can be compared if it is its parent directory. The itemPath is a default item path in case the selectionBar is empty
      **/
-    function filterSelection(currentPath, itemPath) {
+    function filterSelection(currentPath, itemPath)
+    {
         var res = []
 
-        if(selectionBar && selectionBar.count > 0 && selectionBar.contains(itemPath)) {
-            const uris = selectionBar.uris
-            for(var uri of uris) {
-                if(Maui.FM.parentDir(uri) === currentPath) {
+        if(root_selectionBar && root_selectionBar.items.length > 0 && root_selectionBar.contains(itemPath))
+        {
+            const uris = root_selectionBar.uris
+            for(var uri of uris)
+            {
+                if(Maui.FM.parentDir(uri) === currentPath)
+                {
                     res.push(uri)
                 }
             }
-        } else {
+
+        } else
+        {
             res = [itemPath]
         }
 
@@ -1087,22 +1366,27 @@ Maui.Page {
     }
 
 
-    function moveToTrash(item) {
+    function moveToTrash(item)
+    {
         Maui.FM.moveToTrash([item.path])
+
         if(item.mime.indexOf("image/jpeg") != -1
-        || item.mime.indexOf("video") != -1) {
+        || item.mime.indexOf("video") != -1)//对于生成了缩略图的文件来说，进入回收站时，直接干掉缩略图
+        {
             var index = item.path.lastIndexOf(".")
             var newPath = item.path.substring(0, index)//path/name
             index = newPath.lastIndexOf("/")
             var startPath = newPath.substring(0, index + 1);//path/
             var endPath = newPath.substring(index + 1, newPath.length)//name
             var tmpPreview = startPath + "." + endPath + ".jpg"
-            Maui.FM.moveToTrash([tmpPreview])
+            leftMenuData.removeSth(tmpPreview)
         }
 
-        if(root.isSpecialPath) {
+        if(root.isSpecialPath)//特殊目录删除不会自动刷新，我们可以帮他刷，但是刷新的时候可能文件也没有被完全移走到回收站，所以我们从model里面先干掉
+        {
             root.currentBrowser.currentFMList.remove(root.deleteIndex)
         }
+
     }
 }
 

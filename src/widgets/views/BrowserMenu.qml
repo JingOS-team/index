@@ -1,8 +1,3 @@
-/*
- * SPDX-FileCopyrightText: (C) 2021 Wangrui <Wangrui@jingos.com>
- * SPDX-License-Identifier: GPL-3.0-or-later
- */
-
 import QtQuick 2.9
 import QtQuick.Controls 2.3
 import QtQuick.Layouts 1.3
@@ -10,11 +5,26 @@ import org.kde.mauikit 1.0 as Maui
 import org.kde.kirigami 2.15 as Kirigami
 import QtGraphicalEffects 1.0
 
-Kirigami.JPopupMenu  {
+Kirigami.JPopupMenu 
+{
     Action { 
-        text: "Info"
+        text: i18n("New folder")
+        icon.source: "qrc:/assets/popupmenu/add_folder.png"
+        onTriggered:
+        {
+            root.newFolderPath = leftMenuData.createDir(currentBrowser.currentPath, "Untitled Folder")
+            root.isCreateFolfer = true
+            close()
+        }
+    }
+
+    Kirigami.JMenuSeparator { }
+
+    Action { 
+        text: i18n("Info")
         icon.source: "qrc:/assets/popupmenu/info.png"
-        onTriggered: {
+        onTriggered:
+        {
             root_fileInfo.show(-1)
             close()
         }
@@ -23,9 +33,32 @@ Kirigami.JPopupMenu  {
     Kirigami.JMenuSeparator { }
 
     Action { 
-        text: "Paste"
+        text: i18n("Open in terminal")
+        icon.source: "qrc:/assets/popupmenu/open_in_terminal.png"
+        onTriggered:
+        {
+            inx.openTerminal(root.currentPath)
+            close()
+        }
+    }
+
+    Kirigami.JMenuSeparator {
+        visible:{
+            var action = itemAt(6)
+            if(!action) {
+                false
+            } else {
+                true
+            }
+        }
+    }
+
+    Action { 
+        id: pasteAction
+        text: i18n("Paste")
         icon.source: "qrc:/assets/popupmenu/paste.png"
-        onTriggered: {
+        onTriggered:
+        {
             paste()
             close()
             root.selectionMode = false
@@ -33,8 +66,20 @@ Kirigami.JPopupMenu  {
         }
     }
 
-    function show() {
+    function show()
+    {
+        const data = Maui.Handy.getClipboard()
+        const urls = data.urls
+        if(!urls)//没有剪贴板内容 不展示 Paste
+        {
+            takeAction(6)
+        }else//展示 Paste
+        {
+            var action = itemAt(6)
+            if(!action) {
+                insertAction(6, pasteAction)
+            }
+        }
         popup(wholeScreen, menuX, menuY)
     }
-
 }
