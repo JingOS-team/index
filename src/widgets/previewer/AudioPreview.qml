@@ -1,7 +1,3 @@
-/*
- * SPDX-FileCopyrightText: (C) 2021 Wangrui <Wangrui@jingos.com>
- * SPDX-License-Identifier: GPL-3.0-or-later
- */
 import QtQuick 2.9
 import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
@@ -10,57 +6,50 @@ import org.kde.mauikit 1.2 as Maui
 import org.kde.kirigami 2.15 as Kirigami
 import QtGraphicalEffects 1.0
 
-Maui.Page {
+Maui.Page
+// Rectangle
+{
     id: control
     anchors.fill: parent
     property alias player: player
 
+    // property var iteminfo : ""
+
     headBar.visible: false
     footBar.visible: false
 
-    background: Rectangle{
+    background: Rectangle
+    {
         color: "#00000000"
     }
 
-    MediaPlayer {
+    MediaPlayer
+    {
         id: player
-        source: currentUrl
+        source: currentUrl//"file:///home/jingos/Music/Night in Venice.mp3"//currentUrl
         autoLoad: true
         autoPlay: true
-        property string title : player.metaData.title
-
-        onTitleChanged:{
-            infoModel.append({key:"Title", value: player.metaData.title})
-            infoModel.append({key:"Artist", value: player.metaData.albumArtist})
-            infoModel.append({key:"Album", value: player.metaData.albumTitle})
-            infoModel.append({key:"Author", value: player.metaData.author})
-            infoModel.append({key:"Codec", value: player.metaData.audioCodec})
-            infoModel.append({key:"Copyright", value: player.metaData.copyright})
-            infoModel.append({key:"Duration", value: player.metaData.duration})
-            infoModel.append({key:"Track", value: player.metaData.trackNumber})
-            infoModel.append({key:"Year", value: player.metaData.year})
-            infoModel.append({key:"Rating", value: player.metaData.userRating})
-            infoModel.append({key:"Lyrics", value: player.metaData.lyrics})
-            infoModel.append({key:"Genre", value: player.metaData.genre})
-            infoModel.append({key:"Artwork", value: player.metaData.coverArtUrlLarge})
-        }
     }
 
-    Item {
+    Item
+    {
         anchors.fill: parent
         anchors.margins: Maui.Style.space.big
 
-        ColumnLayout {
+        ColumnLayout
+        {
             anchors.centerIn: parent
-            width: Math.min(parent.width, 164)
-            height: Math.min(164, parent.height)
+            width: Math.min(parent.width, 82)
+            height: Math.min(82, parent.height)
             spacing: Maui.Style.space.big
 
-            Item {
+            Item
+            {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
-                Kirigami.Icon {
+                Kirigami.Icon
+                {
                     height: parent.height
                     width: parent.width
                     source: iteminfo.icon
@@ -70,46 +59,50 @@ Maui.Page {
         }
     }
 
-    Rectangle {
+    Rectangle//底部播放器
+    {
         id: playBarFooter
 
         anchors.bottom: parent.bottom
 
         width: parent.width
-        height: 160
+        height: 80
 
         color: "#00000000"
         visible: true
 
-        Rectangle {
+        Rectangle
+        {
             id: shadowRect
             width: parent.width
-            height: 160
+            height: 80
         }
 
-        DropShadow {
+        DropShadow
+        {
             anchors.fill: shadowRect
             samples: 16
             color: "#50000000"
             source: shadowRect
         }
         
-        Rectangle {
+        Rectangle
+        {
             width: parent.width
-            height: 160
+            height: 80
 
             color: "#00000000"
 
-            Kirigami.JIconButton {
+            Kirigami.JIconButton//上一首
+            {
                 id: previousImage
 
                 anchors.left: parent.left
-                anchors.leftMargin: 70
-                anchors.top: parent.top
+                anchors.leftMargin: 50//35
                 anchors.verticalCenter: parent.verticalCenter
 
-                width: 44 + 10
-                height: width
+                width: 22 + 10
+                height: 22 + 10
 
                 source: "qrc:/assets/previousTrack.png"
 
@@ -119,31 +112,34 @@ Maui.Page {
                 }
             }
 
-            Kirigami.JIconButton {
+            Kirigami.JIconButton//播放 暂停
+            {
                 id: playImage
 
                 anchors.left: previousImage.right
-                anchors.leftMargin: 66
+                anchors.leftMargin: 33
                 anchors.verticalCenter: parent.verticalCenter
 
-                width: 60 + 10
+                width: 30 + 10
                 height: width
                 source: player.playbackState === MediaPlayer.PlayingState ? "qrc:/assets/pause.png" : "qrc:/assets/play.png" 
                 
-                onClicked:  {
+                onClicked: 
+                {
                     player.playbackState === MediaPlayer.PlayingState ? player.pause() : player.play()
                 }
             }
             
-            Kirigami.JIconButton {
+            Kirigami.JIconButton//下一首
+            {
                 id: nextTrackImage
 
                 anchors.left: playImage.right
-                anchors.leftMargin: 66
+                anchors.leftMargin: 33
                 anchors.verticalCenter: parent.verticalCenter
 
-                width: 44 + 10
-                height: 44 + 10
+                width: 22 + 10
+                height: 22 + 10
 
                 source: "qrc:/assets/nextTrack.png"
 
@@ -153,18 +149,20 @@ Maui.Page {
                 }
             }
 
-            Rectangle {
+            Rectangle//播放进度条
+            {
                 id: currentTime
 
                 anchors.left: nextTrackImage.right
-                anchors.leftMargin: 70
+                anchors.leftMargin: 35
                 
                 width:  wholeScreen.width / 2
-                height: 160
+                height: 80
 
                 color: "#00000000"
                 
-                Rectangle {
+                Rectangle//播放进度条
+                {
                     id: playBar
 
                     width: currentTime.width                    
@@ -173,23 +171,25 @@ Maui.Page {
                     visible: true
                     color: "#00000000"
                     
-                    Slider  {
+                    Slider
+                    {
                         id: progressBar
 
                         anchors.verticalCenter: parent.verticalCenter
 
-                        width: currentTime.width - _label2.width - wholeScreen.width / 38.4
+                        width: 300//currentTime.width - _label2.width - wholeScreen.width / 38.4
 
                         z: parent.z + 1
                         from: 0
                         to: 1000
-                        value: (1000 * player.position) / player.duration
+                        value: (1000 * player.position) / player.duration//player.pos
                         spacing: 0
                         focus: true
-                        onMoved: player.seek((progressBar.value / 1000) * player.duration)
+                        onMoved: player.seek((progressBar.value / 1000) * player.duration)//player.pos = value
                         enabled: player.playing
                         
-                        handle: Rectangle  {
+                        handle: Rectangle//选中拖动时候的效果
+                        {
                             id: handleRect
 
                             anchors.verticalCenter:parent.verticalCenter
@@ -200,38 +200,42 @@ Maui.Page {
                             x: progressBar.leftPadding + progressBar.visualPosition
                             * (progressBar.availableWidth - width)
                             y: 0
-                            color:  {
+                            color: 
+                            {
                                 "#FFFFFFFF"
                             }
-                            radius: 8
+                            radius: 4
                         }
 
-                        DropShadow {
+                        DropShadow
+                        {
                             anchors.fill: handleRect
 
-                            radius: 8
+                            radius: 4
                             samples: 16
                             color: "#50000000"
                             source: handleRect
                         }
 
-                        background: Rectangle {
+                        background: Rectangle
+                        {
                             id: rect1
 
                             anchors.verticalCenter: parent.verticalCenter
 
                             width: progressBar.availableWidth
-                            height: 8
+                            height: 4
 
                             color: "#3E3C3C43"
                             opacity: 0.4
                             radius: 2
 
-                            Rectangle {
+                            Rectangle
+                            {
                                 id: rect2
 
                                 width: progressBar.visualPosition * parent.width
-                                height: 8
+                                height: 4
 
                                 color: "#FF43BDF4"
                                 radius: 2
@@ -239,20 +243,23 @@ Maui.Page {
                         }
                     }
 
-                    Text  {
+                    Text//播放时间
+                    {
                         id: _label2
 
                         anchors.right: parent.right
+                        anchors.rightMargin: 35
                         anchors.verticalCenter: parent.verticalCenter
 
                         visible: text.length
                         text:  Maui.FM.formatTime(player.position/1000) + "/" +  Maui.FM.formatTime(player.duration/1000) 
 
+                        //progressTimeLabel + "/" + player.transformTime(player.duration/1000)
                         elide: Text.ElideMiddle
                         wrapMode: Text.NoWrap
                         color: "#FF8E8E93"
                         font.weight: Font.Normal
-                        font.pointSize: theme.defaultFont.pointSize - 3
+                        font.pixelSize: 11
                         opacity: 0.7
                         
                         Component.onCompleted: {
@@ -260,30 +267,45 @@ Maui.Page {
                         }
                     }
                 }
+
             }
         }
     }
 
-    function playNextMusic(isNext){
+    function playNextMusic(isNext)
+    {
         var tmpIndex = root.imageIndex
-        while(true){
-            if(isNext)  {
-                if(root.imageIndex == root.currentBrowser.currentFMList.count - 1) {
+        while(true)
+        {
+            if(isNext)
+            {
+                // root.imageIndex = root.imageIndex + 1
+                // if(root.imageIndex >= root.currentBrowser.currentFMList.count)
+                // {
+                //     root.imageIndex = 0
+                // }
+                if(root.imageIndex == root.currentBrowser.currentFMList.count - 1)
+                {
                     root.imageIndex = tmpIndex
                     break
-                }else {
+                }else
+                {
                     root.imageIndex = root.imageIndex + 1
                 }
-            }else {
-                if(root.imageIndex == 0) {
+            }else
+            {
+                if(root.imageIndex == 0)
+                {
                     root.imageIndex = tmpIndex
                     break
-                }else {
+                }else
+                {
                     root.imageIndex = root.imageIndex - 1
                 }
             }
             const item = root.currentBrowser.currentFMModel.get(root.imageIndex)
-            if(item.mime.indexOf("audio") != -1) {
+            if(item.mime.indexOf("audio") != -1)
+            {
                 iteminfo = item
                 root.currentTitle = item.label
                 currentUrl = item.path

@@ -31,14 +31,6 @@ Maui.Terminal
 
     onTitleChanged:
     {
-//        var path = "file://"+control.title.slice(control.title.indexOf(":")+1).trim();
-//        console.log("yea", path)
-//        root.currentBrowser.currentPath = path;
-
-//        if(Maui.FM.fileExists(path))
-//        {
-//            root.currentBrowser.currentPath = path;
-//        }
     }
 
     onUrlsDropped:

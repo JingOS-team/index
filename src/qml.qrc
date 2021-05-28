@@ -10,7 +10,6 @@
         <file>widgets/previewer/DocumentPreview.qml</file>
         <file>widgets/previewer/FilePreviewer.qml</file>
         <file>widgets/previewer/FileInfo.qml</file>
-        <file>widgets/previewer/ImagePreview.qml</file>
         <file>widgets/previewer/ImageViewer.qml</file>
         <file>widgets/previewer/Header.qml</file>
         <file>widgets/previewer/TextPreview.qml</file>
@@ -31,6 +30,12 @@
         <file>assets/play.png</file>
         <file>assets/pause.png</file>
         <file>assets/previousTrack.png</file>
+
+        <file>assets/zip.gif</file>
+        <file>assets/unzip.gif</file>
+
+        <file>assets/leftarrow.png</file>
+        <file>assets/rightarrow.png</file>
 
         <file>assets/unselect_rect.png</file>
         <file>assets/unselect_copy.png</file>
@@ -78,13 +83,29 @@
         <file>assets/rar.png</file>
         <file>assets/tar.png</file>
         <file>assets/word.png</file>
-        <file>assets/music.png</file>
         <file>assets/empty.png</file>
         <file>assets/excel.png</file>
         <file>assets/default.png</file>
         <file>assets/image_default.png</file>
         <file>assets/video_default.png</file>
+        <file>assets/tag_edit.png</file>
+        <file>assets/image_set_wallpaper.png</file>
+        <file>assets/image_delete.png</file>
         
+        <file>assets/music.svg</file>
+        <file>assets/excel.svg</file>
+        <file>assets/ppt.svg</file>
+        <file>assets/word.svg</file>
+        <file>assets/empty.svg</file>
+        <file>assets/image_default.svg</file>
+        <file>assets/default.svg</file>
+        <file>assets/compress.svg</file>
+        <file>assets/zip.svg</file>
+        <file>assets/7zip.svg</file>
+        <file>assets/rar.svg</file>
+        <file>assets/tar.svg</file>
+        <file>assets/folder_icon.svg</file>
+
         <file>assets/leftmenu/downArrow.png</file>
         <file>assets/leftmenu/upArrow.png</file>
         <file>assets/leftmenu/documentSelect.png</file>
@@ -113,14 +134,42 @@
         <file>assets/leftmenu/videoUnselect.png</file>
         <file>assets/leftmenu/musicSelect.png</file>
         <file>assets/leftmenu/musicUnselect.png</file>
-        <file>assets/leftmenu/tagImportant.png</file>
-        <file>assets/leftmenu/tagLife.png</file>
-        <file>assets/leftmenu/tagTemporary.png</file>
-        <file>assets/leftmenu/tagWork.png</file>
-        <file>assets/leftmenu/tagMeeting.png</file>
-        <file>assets/leftmenu/tagFile.png</file>
-        <file>assets/leftmenu/tagPicture.png</file>
-        <file>assets/leftmenu/tagPrivate.png</file>
+        <file>assets/leftmenu/tag0.png</file>
+        <file>assets/leftmenu/tag1.png</file>
+        <file>assets/leftmenu/tag2.png</file>
+        <file>assets/leftmenu/tag3.png</file>
+        <file>assets/leftmenu/tag4.png</file>
+        <file>assets/leftmenu/tag5.png</file>
+        <file>assets/leftmenu/tag6.png</file>
+        <file>assets/leftmenu/tag7.png</file>
+        <file>assets/leftmenu/tag0Select.png</file>
+        <file>assets/leftmenu/tag1Select.png</file>
+        <file>assets/leftmenu/tag2Select.png</file>
+        <file>assets/leftmenu/tag3Select.png</file>
+        <file>assets/leftmenu/tag4Select.png</file>
+        <file>assets/leftmenu/tag5Select.png</file>
+        <file>assets/leftmenu/tag6Select.png</file>
+        <file>assets/leftmenu/tag7Select.png</file>
+
+        <!-- 编辑态用的大图 60x60 讲道理用一个就行 但是要求图标的清晰度 不进行放大缩小操作 所以这里使用60x60 -->
+        <file>assets/tagedit/tag0.png</file>
+        <file>assets/tagedit/tag1.png</file>
+        <file>assets/tagedit/tag2.png</file>
+        <file>assets/tagedit/tag3.png</file>
+        <file>assets/tagedit/tag4.png</file>
+        <file>assets/tagedit/tag5.png</file>
+        <file>assets/tagedit/tag6.png</file>
+        <file>assets/tagedit/tag7.png</file>
+        <file>assets/tagedit/tag0_select.png</file>
+        <file>assets/tagedit/tag1_select.png</file>
+        <file>assets/tagedit/tag2_select.png</file>
+        <file>assets/tagedit/tag3_select.png</file>
+        <file>assets/tagedit/tag4_select.png</file>
+        <file>assets/tagedit/tag5_select.png</file>
+        <file>assets/tagedit/tag6_select.png</file>
+        <file>assets/tagedit/tag7_select.png</file>
+        <file>widgets/views/EditTagMenu.qml</file>
+
 
         <file>assets/popupmenu/bat_edit.png</file>
         <file>assets/popupmenu/open_mode.png</file>
@@ -133,9 +182,12 @@
         <file>assets/popupmenu/zip.png</file>
         <file>assets/popupmenu/unzip.png</file>
         <file>assets/popupmenu/fav.png</file>
+        <file>assets/popupmenu/fav_already.png</file>
         <file>assets/popupmenu/paste.png</file>
         <file>assets/popupmenu/delete_all.png</file>
         <file>assets/popupmenu/recover.png</file>
+        <file>assets/popupmenu/add_folder.png</file>
+        <file>assets/popupmenu/open_in_terminal.png</file>
         
 
         <file>widgets/views/BrowserHolder.qml</file>
@@ -144,6 +196,7 @@
         <file>widgets/views/BrowserSettings.qml</file>
         <file>widgets/views/BrowserView.qml</file>
         <file>widgets/views/FileBroswerView.qml</file>
+        <file>widgets/views/TagMenu.qml</file>
         <file>widgets/views/FileMenu.qml</file>
         <file>widgets/views/FolderMenu.qml</file>
         <file>widgets/views/ZipFileMenu.qml</file>
@@ -157,5 +210,9 @@
         <file>widgets/views/GrideBrowser.qml</file>
         <file>widgets/views/GridDelegate.qml</file>
         <file>widgets/views/CustomPopup.qml</file>
+        <file>widgets/views/MenuList.qml</file>
+        <file>widgets/views/OpenWithDialog.qml</file>
+
+        <file>widgets/previewer/SelectionBar.qml</file>
     </qresource>
 </RCC>

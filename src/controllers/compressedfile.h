@@ -35,6 +35,8 @@ public:
 
     CompressedFileModel *model() const;
 
+    QString checkFileName(const QUrl &where, const QString &fileName, const bool isExtract);
+
 private:
     QUrl m_url;
     CompressedFileModel *m_model;
@@ -43,8 +45,13 @@ public slots:
     void extract(const QUrl &where, const QString &directory = QString());
     bool compress(const QVariantList &files, const QUrl &where, const QString &fileName, const int &compressTypeSelected);
 
+    void extractWithThread(const QUrl &where, const QString &directory = QString());
+    bool compressWithThread(const QVariantList &files, const QUrl &where, const QString &fileName, const int &compressTypeSelected);
+
 signals:
     void urlChanged();
+    void finishZip(QString filePath);
+    void startZip(QString filePath);
 };
 
 #endif // COMPRESSEDFILE_H
