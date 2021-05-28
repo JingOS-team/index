@@ -1,4 +1,4 @@
-# jing-filemanager
+# filemanager
 
 Jingos filemanager based on  [index-fm](https://invent.kde.org/maui/index-fm)
 
@@ -32,9 +32,9 @@ these are just some features that set Files apart from others
 
 * Home page: https://www.jingos.com/
 
-* Project page: https://github.com/JingOS-team/jing-filemanager
+* Project page: https://github.com/JingOS-team/filemanager
 
-* Issues: https://github.com/JingOS-team/jing-filemanager/issues
+* Issues: https://github.com/JingOS-team/filemanager/issues
 
 * Development channel: https://forum.jingos.com/
 
