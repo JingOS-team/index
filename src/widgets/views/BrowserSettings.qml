@@ -1,3 +1,5 @@
+
+
 /*
  *   Copyright 2018 Camilo Higuita <milo.h@aol.com>
  *
@@ -16,68 +18,77 @@
  *   Free Software Foundation, Inc.,
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 import QtQml 2.1
 import org.kde.mauikit 1.0 as Maui
 
-QtObject
-{
-    /**
-      *
-      */
-    property var filters : []
+QtObject {
 
     /**
       *
       */
-    property int filterType : Maui.FMList.NONE
+    property var filters: []
+
 
     /**
       *
       */
-    property bool onlyDirs : false
+    property int filterType: Maui.FMList.NONE
+
 
     /**
       *
       */
-    property int sortBy : Maui.FM.loadSettings("SortBy", "SETTINGS", Maui.FMList.LABEL)
+    property bool onlyDirs: false
 
-
-    property int sortOrder : Maui.FM.loadSettings("SortOrder", "SETTINGS", Qt.AscendingOrder)//add by hjy
 
     /**
       *
       */
-    property bool trackChanges : false
+    property int sortBy: Maui.FM.loadSettings("SortBy", "SETTINGS",
+                                              Maui.FMList.LABEL)
+
+    property int sortOrder: Maui.FM.loadSettings("SortOrder", "SETTINGS",
+                                                 Qt.AscendingOrder) //add by hjy
+
 
     /**
       *
       */
-    property bool saveDirProps : false
+    property bool trackChanges: false
+
+
+    /**
+      *
+      */
+    property bool saveDirProps: false
+
 
     /**
       *
       */
     property bool showThumbnails: false
 
+
     /**
       *
       */
     property bool showHiddenFiles: false
 
-    /**
-      *
-      */
-    property bool group : false
 
     /**
       *
       */
-    property int viewType : 0
+    property bool group: false
+
+
+    /**
+      *
+      */
+    property int viewType: 0
+
 
     /**
       *
       */
     property bool foldersFirst: true
 }
-

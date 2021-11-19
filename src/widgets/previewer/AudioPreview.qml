@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2021 Beijing Jingling Information System Technology Co., Ltd. All rights reserved.
+ *
+ * Authors:
+ * Zhang He Gang <zhanghegang@jingos.com>
+ *
+ */
 import QtQuick 2.9
 import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
@@ -7,7 +14,6 @@ import org.kde.kirigami 2.15 as Kirigami
 import QtGraphicalEffects 1.0
 
 Maui.Page
-// Rectangle
 {
     id: control
     anchors.fill: parent
@@ -26,7 +32,7 @@ Maui.Page
     MediaPlayer
     {
         id: player
-        source: currentUrl//"file:///home/jingos/Music/Night in Venice.mp3"//currentUrl
+        source: currentUrl
         autoLoad: true
         autoPlay: true
     }
@@ -76,6 +82,7 @@ Maui.Page
             id: shadowRect
             width: parent.width
             height: 80
+            color: Kirigami.JTheme.cardBackground
         }
 
         DropShadow
@@ -226,8 +233,8 @@ Maui.Page
                             width: progressBar.availableWidth
                             height: 4
 
-                            color: "#3E3C3C43"
-                            opacity: 0.4
+                            color: Kirigami.JTheme.dividerForeground//"#3E3C3C43"
+                            // opacity: 0.4
                             radius: 2
 
                             Rectangle
@@ -237,7 +244,7 @@ Maui.Page
                                 width: progressBar.visualPosition * parent.width
                                 height: 4
 
-                                color: "#FF43BDF4"
+                                color: Kirigami.JTheme.highlightBlue//"#FF43BDF4"
                                 radius: 2
                             }
                         }
@@ -254,10 +261,9 @@ Maui.Page
                         visible: text.length
                         text:  Maui.FM.formatTime(player.position/1000) + "/" +  Maui.FM.formatTime(player.duration/1000) 
 
-                        //progressTimeLabel + "/" + player.transformTime(player.duration/1000)
                         elide: Text.ElideMiddle
                         wrapMode: Text.NoWrap
-                        color: "#FF8E8E93"
+                        color: Kirigami.JTheme.majorForeground//"#FF8E8E93"
                         font.weight: Font.Normal
                         font.pixelSize: 11
                         opacity: 0.7

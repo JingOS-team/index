@@ -1,68 +1,74 @@
+
+/*
+ * Copyright (C) 2021 Beijing Jingling Information System Technology Co., Ltd. All rights reserved.
+ *
+ * Authors:
+ * Zhang He Gang <zhanghegang@jingos.com>
+ *
+ */
 import QtQuick 2.9
 import QtQuick.Controls 2.9
 import QtQuick.Layouts 1.3
 
-import org.kde.kirigami 2.7 as Kirigami
+import org.kde.kirigami 2.15 as Kirigami
 import org.kde.mauikit 1.0 as Maui
 
-Maui.Page
-{
+Maui.Page {
     id: control
 
     headBar.visible: false
     title: currentFMList.pathName
 
-    background: Rectangle{
-        color: "#FFFFFFFF"
+    background: Rectangle {
+        color: Kirigami.JTheme.colorScheme === "jingosLight" ? "#ffffffff" : "#ff000000"
     }
 
-    Timer {//在进入文件夹后再次新建文件夹时，需要延迟处理，否则新建的文件夹item会是去焦点导致无法自动重命名
+    Timer {
         id: timer
         running: false
         repeat: false
         interval: 10
 
         onTriggered: {
-            for(var i = 0; i < currentFMList.count; i++)
-            {
+            for (var i = 0; i < currentFMList.count; i++) {
                 var item = currentFMModel.get(i)
-                if(item.path == newFolderPath)
-                {
+                if (item.path == newFolderPath) {
                     root_renameSelectionBar.append(item.path, item)
                     break
                 }
             }
         }
     }
+
+
     /**
       *
       */
     property url path
 
+
     /**
       *
       */
-    property bool selectionMode : false
+    property bool selectionMode: false
 
-    property int gridItemSize :  Maui.Style.iconSizes.large * 1.7
-    property int listItemSize :  Maui.Style.rowHeight
+    property int gridItemSize: Maui.Style.iconSizes.large * 1.7
+    property int listItemSize: Maui.Style.rowHeight
+
+    property int gridItemCount: 0
 
 
-    property int gridItemCount: 0 //gridview用来做行间的高度指定
     /**
       *
       */
-    property int currentIndex : -1
-    Binding on currentIndex
-    {
+    property int currentIndex: -1
+    Binding on currentIndex {
         when: control.currentView
         value: control.currentView.currentIndex
     }
 
-    onPathChanged:
-    {
-        if(control.currentView)
-        {
+    onPathChanged: {
+        if (control.currentView) {
             root.searchState = false
             control.currentIndex = 0
             control.currentView.forceActiveFocus()
@@ -71,134 +77,121 @@ Maui.Page
 
     //group properties from the browser since the browser views are loaded async and
     //their properties can not be accesed inmediately, so they are stored here and then when completed they are set
+
+
     /**
       *
       */
-    property alias settings : _settings
-    BrowserSettings
-    {
+    property alias settings: _settings
+    BrowserSettings {
         id: _settings
-        onGroupChanged:
-        {
-            // if(settings.group)
-            // {
-            //     groupBy()
-            // }
-            // else
-            // {
-                currentView.section.property = ""
-            // }
+        onGroupChanged: {
+            currentView.section.property = ""
         }
     }
+
 
     /**
       *
       */
     property Maui.FMList currentFMList
 
+
     /**
       *
       */
     property Maui.BaseModel currentFMModel
 
+
     /**
       *
       */
-    property alias currentView : viewLoader.item
+    property alias currentView: viewLoader.item
+
 
     /**
       *
       */
     property string filter
 
+
     /**
       *
       */
-    function setCurrentFMList()
-    {
-        if(control.currentView)
-        {
+    function setCurrentFMList() {
+        if (control.currentView) {
             control.currentFMList = currentView.currentFMList
             control.currentFMModel = currentView.currentFMModel
             currentView.forceActiveFocus()
         }
     }
 
+
     /**
       *
       */
-    function groupBy()
-    {
-    }
+    function groupBy() {}
 
-    Menu
-    {
+    Menu {
         id: _dropMenu
         property string urls
         property url target
 
-        enabled: Maui.FM.getFileInfo(target).isdir == "true" && !urls.includes(target.toString())
+        enabled: Maui.FM.getFileInfo(target).isdir == "true" && !urls.includes(
+                     target.toString())
 
-        MenuItem
-        {
+        MenuItem {
             text: i18n("Copy here")
-            onTriggered:
-            {
+            onTriggered: {
                 const urls = _dropMenu.urls.split(",")
                 Maui.FM.copy(urls, _dropMenu.target, false)
             }
         }
 
-        MenuItem
-        {
+        MenuItem {
             text: i18n("Move here")
-            onTriggered:
-            {
+            onTriggered: {
                 const urls = _dropMenu.urls.split(",")
                 Maui.FM.cut(urls, _dropMenu.target)
             }
         }
 
-        MenuItem
-        {
+        MenuItem {
             text: i18n("Link here")
-            onTriggered:
-            {
+            onTriggered: {
                 const urls = _dropMenu.urls.split(",")
-                for(var i in urls)
+                for (var i in urls)
                     Maui.FM.createSymlink(url[i], _dropMenu.target)
             }
         }
 
         MenuSeparator {}
 
-        MenuItem
-        {
+        MenuItem {
             text: i18n("Cancel")
             onTriggered: _dropMenu.close()
         }
     }
 
-    Loader
-    {
+    Loader {
         id: viewLoader
         anchors.fill: parent
         focus: true
-        sourceComponent: switch(settings.viewType)
-        {
-            case Maui.FMList.ICON_VIEW: return gridViewBrowser
-            case Maui.FMList.LIST_VIEW: return listViewBrowser
-            // case Maui.FMList.MILLERS_VIEW: return millerViewBrowser
-        }
+        sourceComponent: switch (settings.viewType) {
+                         case Maui.FMList.ICON_VIEW:
+                             return gridViewBrowser
+                         case Maui.FMList.LIST_VIEW:
+                             return listViewBrowser
+                         }
 
         onLoaded: setCurrentFMList()
     }
 
-    Maui.FMList
-    {
+    Maui.FMList {
         id: _commonFMList
         path: control.path
-        onSortByChanged: if(settings.group) groupBy()
+        onSortByChanged: if (settings.group)
+                             groupBy()
         onlyDirs: settings.onlyDirs
         filterType: settings.filterType
         filters: settings.filters
@@ -207,30 +200,25 @@ Maui.Page
         hidden: settings.showHiddenFiles
         foldersFirst: settings.foldersFirst
 
-        onStatusChanged://hjy 可以通过监听这里来做是否展示空白页面的逻辑
-        {
-            if(status.title == "Nothing here!")
-            {
+        onStatusChanged: {
+            if (status.title == "Nothing here!") {
                 root.isNothingHere = true
-            }else if(!status.empty)
-            {
+            } else if (!status.empty) {
                 root.isNothingHere = false
             }
         }
     }
 
-    Component
-    {
+    Component {
         id: listViewBrowser
 
-        ListBrowser
-        {
+        ListBrowser {
             id: _listViewBrowser
 
             anchors.fill: parent
             objectName: "FM ListBrowser"
-            property alias currentFMList : _browserModel.list
-            property alias currentFMModel : _browserModel
+            property alias currentFMList: _browserModel.list
+            property alias currentFMModel: _browserModel
             selectionMode: control.selectionMode
             property bool checkable: control.selectionMode
             enableLassoSelection: false
@@ -241,20 +229,7 @@ Maui.Page
             signal itemRightClicked(int index)
             signal itemToggled(int index, bool state)
 
-            // BrowserHolder
-            // {
-            //     id: _holder
-            //     browser: currentFMList
-            // }
-
-            // holder.visible: _holder.visible
-            // holder.emoji: _holder.emoji
-            // holder.title: _holder.title
-            // holder.body: _holder.body
-            // holder.emojiSize: _holder.emojiSize
-
-            model: Maui.BaseModel
-            {
+            model: Maui.BaseModel {
                 id: _browserModel
                 list: _commonFMList
                 filter: control.filter
@@ -263,217 +238,182 @@ Maui.Page
                 filterCaseSensitivity: Qt.CaseInsensitive
             }
 
-            onCountChanged:
-            {
-                if(root.isCreateFolfer)
-                {
+            onCountChanged: {
+                if (root.isCreateFolfer) {
                     timer.start()
                     root.isCreateFolfer = false
                 }
             }
 
-            section.delegate: Maui.LabelDelegate
-            {
+            section.delegate: Maui.LabelDelegate {
                 id: delegate
                 width: parent ? parent.width : 0
                 height: Maui.Style.toolBarHeightAlt
 
-                label: _listViewBrowser.section.property == "date" || _listViewBrowser.section.property === "modified" ?  Qt.formatDateTime(new Date(section), "d MMM yyyy") : section
+                label: _listViewBrowser.section.property == "date"
+                       || _listViewBrowser.section.property
+                       === "modified" ? Qt.formatDateTime(
+                                            new Date(section),
+                                            "d MMM yyyy") : section
                 labelTxt.font.pointSize: Maui.Style.fontSizes.big
 
                 isSection: true
             }
 
-            delegate: ListViewDelegate
-            {
-                id:listDelegate
-
-                width: ListView.view.width + 20
-                height: 44 + 20
-                iconSource: getIcon(model)//isFolder? "qrc:/assets/folder.png" : model.icon
-                fileDate : getDate(model.modified)//model.modified ? Maui.FM.formatDate(model.modified, "yyyy.MM.dd hh:mm AP") : ""
-                fileSize : //isFolder ? (model.count ? model.count + i18n(" items") : "") : Maui.FM.formatSize(model.size)
-                {
-                    if(isFolder)
-                    {
-                        if(model.count)
-                        {
-                            if(model.count.length > 4)
-                            {
-                                "9999+" + i18n(" items")
-                            }else
-                            {
-                                model.count + i18n(" items")
+            delegate: Item {
+                id: listDelegate
+                width: ListView.view.width
+                height: 44 * appScaleSize
+                ListViewDelegate {
+                    anchors.fill: parent
+                    anchors.leftMargin: 42 * appScaleSize
+                    anchors.rightMargin: 28 * appScaleSize
+                    iconSource: getIcon(model)
+                    fileDate: getDate(model.modified)
+                    fileSize: {
+                        if (isFolder) {
+                            if (model.count) {
+                                if (model.count.length > 4) {
+                                    "9999+ " + i18n("items")
+                                } else {
+                                    model.count + " " + i18n("items")
+                                }
+                            } else {
+                                ""
                             }
-                        }else
-                        {
-                            ""
-                        }
-                    }else
-                    {
-                        var fileSizeFormat = Maui.FM.formatSize(model.size)//格式化文件大小
-                        if(fileSizeFormat.indexOf("KiB") != -1)
-                        {
-                            fileSizeFormat = fileSizeFormat.replace("KiB", "K")
-                        }else if(fileSizeFormat.indexOf("MiB") != -1)
-                        {
-                            fileSizeFormat = fileSizeFormat.replace("MiB", "M")
-                        }else if(fileSizeFormat.indexOf("GiB") != -1)
-                        {
-                            fileSizeFormat = fileSizeFormat.replace("GiB", "G")
-                        }else
-                        {
-                            fileSizeFormat
+                        } else {
+                            var fileSizeFormat = Maui.FM.formatSizeForQulonglong(
+                                        model.size) //格式化文件大小
+                            if (fileSizeFormat.indexOf("KiB") !== -1) {
+                                fileSizeFormat = fileSizeFormat.replace("KiB",
+                                                                        "K")
+                            } else if (fileSizeFormat.indexOf("MiB") !== -1) {
+                                fileSizeFormat = fileSizeFormat.replace("MiB",
+                                                                        "M")
+                            } else if (fileSizeFormat.indexOf("GiB") !== -1) {
+                                fileSizeFormat = fileSizeFormat.replace("GiB",
+                                                                        "G")
+                            } else {
+                                fileSizeFormat
+                            }
                         }
                     }
-                }
-                tagSource: getTagSource(model)
+                    tagSource: getTagSource(model)
 
-                isFolder : model.mime === "inode/directory"
-                fileName : model.label
-                draggable: true
-                visible: 
-                {
-                    if(model.hidden == "true")//trash目录中自己创建的缓存文件 在Maui的库中设置为了hidden为true 不展示
-                    {
-                        false
-                    }else
-                    {
-                        true
-                    }
-                }
-
-                onClicked:
-                {
-                    control.currentIndex = index
-
-                    if(String(root.currentPath).startsWith("trash:/") && !root.selectionMode)
-                    {
-                        return
+                    isFolder: model.mime === "inode/directory"
+                    fileName: model.label
+                    draggable: true
+                    visible: {
+                        if (model.hidden == "true")
+                        {
+                            false
+                        } else {
+                            true
+                        }
                     }
 
-                    if ((mouse.button == Qt.LeftButton) && (mouse.modifiers & Qt.ControlModifier))
-                    {
-                        _listViewBrowser.itemsSelected([index])
-                    }else
-                    {
-                        _listViewBrowser.itemClicked(index)
+                    onClicked: {
+                        control.currentIndex = index
+                        if (String(root.currentPath).startsWith("trash:/")
+                                && !root.selectionMode) {
+                            return
+                        }
+
+                        if ((mouse.button == Qt.LeftButton)
+                                && (mouse.modifiers & Qt.ControlModifier))
+                        {
+                            root.selectionMode = true
+                            _listViewBrowser.itemsSelected([index])
+                        } else {
+                            _listViewBrowser.itemClicked(index)
+                        }
                     }
-                }
 
-                onDoubleClicked:
-                {
-                    control.currentIndex = index
-                    _listViewBrowser.itemDoubleClicked(index)
-                }
-
-                onPressAndHold:
-                {
-                    // if(!Maui.Handy.isTouch)
-                    //     return
-                    var realMap = mapToItem(wholeScreen, mouse.x, mouse.y)
-                    menuX = realMap.x
-                    menuY = realMap.y
-                    control.currentIndex = index
-                    _listViewBrowser.itemRightClicked(index)
-                }
-
-                onRightClicked:
-                {
-                    var realMap = mapToItem(wholeScreen, mouse.x, mouse.y)
-                    menuX = realMap.x
-                    menuY = realMap.y
-                    control.currentIndex = index
-                    _listViewBrowser.itemRightClicked(index)
-                }
-
-                onToggled:
-                {
-                    control.currentIndex = index
-                    _listViewBrowser.itemToggled(index, state)
-                }
-
-                onContentDropped:
-                {
-                    _dropMenu.urls = drop.urls.join(",")
-                    _dropMenu.target = model.path
-                    _dropMenu.popup()
-                }
-
-                ListView.onRemove:
-                {
-                    if(selectionBar && !Maui.FM.fileExists(delegate.path))
-                    {
-                        selectionBar.removeAtUri(delegate.path)
+                    onDoubleClicked: {
+                        control.currentIndex = index
+                        _listViewBrowser.itemDoubleClicked(index)
                     }
-                }
 
-                Connections
-                {
-                    target: selectionBar
+                    onPressAndHold: {
+                        var realMap = mapToItem(wholeScreen, mouse.x, mouse.y)
+                        menuX = realMap.x
+                        menuY = realMap.y
+                        control.currentIndex = index
+                        console.log("browser item 111111 item right clicked idnex " + index)
+                        _listViewBrowser.itemRightClicked(index)
+                    }
 
-                    function onUriRemoved(uri)
-                    {
-                        if(uri === model.path)
+                    onRightClicked: {
+                        var realMap = mapToItem(wholeScreen, mouse.x, mouse.y)
+                        menuX = realMap.x
+                        menuY = realMap.y
+                        control.currentIndex = index
+                        _listViewBrowser.itemRightClicked(index)
+                    }
+
+                    onToggled: {
+                        control.currentIndex = index
+                        _listViewBrowser.itemToggled(index, state)
+                    }
+
+                    onContentDropped: {
+                        _dropMenu.urls = drop.urls.join(",")
+                        _dropMenu.target = model.path
+                        _dropMenu.popup()
+                    }
+
+                    ListView.onRemove: {
+                        if (selectionBar && !Maui.FM.fileExists(
+                                    delegate.path)) {
+                            selectionBar.removeAtUri(delegate.path)
+                        }
+                    }
+
+                    Connections {
+                        target: selectionBar
+
+                        function onUriRemoved(uri) {
+                            if (uri === model.path)
+                                delegate.checked = false
+                        }
+
+                        function onUriAdded(uri) {
+                            if (uri === model.path)
+                                delegate.checked = true
+                        }
+
+                        function onCleared() {
                             delegate.checked = false
-                    }
-
-                    function onUriAdded(uri)
-                    {
-                        if(uri === model.path)
-                            delegate.checked = true
-                    }
-
-                    function onCleared()
-                    {
-                        delegate.checked = false
+                        }
                     }
                 }
             }
-    }
+        }
     }
 
-    Component
-    {
+    Component {
         id: gridViewBrowser
 
-        GrideBrowser
-        {
+        GrideBrowser {
             id: _gridViewBrowser
             objectName: "FM GridBrowser"
 
-            property alias currentFMList : _browserModel.list
-            property alias currentFMModel : _browserModel
-            itemSize : control.gridItemSize
-            itemWidth: 100 //width/6
-            itemHeight: 115 + 10 //height/4
-            
+            property alias currentFMList: _browserModel.list
+            property alias currentFMModel: _browserModel
+            itemSize: control.gridItemSize
+            itemWidth: 100 * appScaleSize
+            itemHeight: (115 + 10) * appScaleSize
+
             property bool checkable: control.selectionMode
             enableLassoSelection: true
             currentIndex: control.currentIndex
-
-            // anchors.left: parent.left
-            // anchors.leftMargin: 90
 
             signal itemClicked(int index)
             signal itemDoubleClicked(int index)
             signal itemRightClicked(int index)
             signal itemToggled(int index, bool state)
 
-            // BrowserHolder
-            // {
-            //     id: _holder
-            //     browser: currentFMList
-            // }
-
-            // holder.visible: _holder.visible
-            // holder.emoji: _holder.emoji
-            // holder.title: _holder.title
-            // holder.body: _holder.body
-            // holder.emojiSize: _holder.emojiSize
-            
-            model: Maui.BaseModel
-            {
+            model: Maui.BaseModel {
                 id: _browserModel
                 list: _commonFMList
                 filter: control.filter
@@ -482,169 +422,93 @@ Maui.Page
                 filterCaseSensitivity: Qt.CaseInsensitive
             }
 
-            onCountChanged:
-            {
-                if(root.isCreateFolfer)
-                {
+            onCountChanged: {
+                if (root.isCreateFolfer) {
                     timer.start()
                     root.isCreateFolfer = false
                 }
             }
 
-            delegate: Rectangle
-            {
-
-                property bool isCurrentItem : GridView.isCurrentItem
-
-                width: 100//_gridViewBrowser.cellWidth
-                height: 115 + 10//_gridViewBrowser.cellHeight
-                color: "#FFFFFFFF"
+            delegate: Item {
+                property bool isCurrentItem: GridView.isCurrentItem
+                width: 100 * appScaleSize
+                height: (115 + 10) * appScaleSize
                 clip: true
+                visible: model.hidden === true ? false : true
+                anchors.left: visible ? parent.left : wholeScreen.left
+                anchors.leftMargin: visible ? (index % 5)
+                                              * (width + (parent.width - (width * 5)) / 4) : 0
+                anchors.top: visible ? parent.top : wholeScreen.top
+                anchors.topMargin: visible ? Math.floor(
+                                                 index / 5) * (height + 20 * appScaleSize) : 0
 
-                visible: 
-                {
-                    if(model.hidden == "true")//trash目录中自己创建的缓存文件 在Maui的库中设置为了hidden为true 不展示
-                    {
-                        false
-                    }else
-                    {
-                        true
-                    }
-                }
-
-               anchors
-               {
-                    left: 
-                    {
-                        if(visible)
-                        {
-                            parent.left
-                        }else
-                        {
-                            wholeScreen.left
-                        }
-                    }
-                    leftMargin:
-                    {
-                        if(visible)
-                        {
-                            (index % 5) * (width + (parent.width - (width * 5)) / 4)
-                        }else
-                        {
-                            0
-                        }
-                    } 
-
-                    top: 
-                    {
-                        if(visible)
-                        {
-                            parent.top
-                        }else
-                        {
-                            wholeScreen.top
-                        }
-                    }
-                    topMargin: 
-                    {
-                        if(visible)
-                        {
-                            Math.floor(index / 5) * (height + 20)
-                        }else
-                        {
-                            0
-                        }
-                        
-                    }
-               }
-
-                GridView.onRemove:
-                {
-                    if(selectionBar && !Maui.FM.fileExists(delegate.path))
-                    {
+                GridView.onRemove: {
+                    if (selectionBar && !Maui.FM.fileExists(delegate.path)) {
                         selectionBar.removeAtUri(delegate.path)
                     }
                 }
 
-               GridDelegate
-                {
+                GridDelegate {
                     id: delegate
-
-                    anchors.centerIn: parent
-                    // width: parent.width - 14
-                    // height: parent.height - 18
-                    width: 100//parent.width - 18
-                    height: 115 + 10//parent.height - 40
+                    anchors.fill: parent
                     iconSource: getIcon(model)
-                    fileDate : getDate(model.modified)//model.modified ? Maui.FM.formatDate(model.modified, "yyyy.MM.dd hh:mm AP") : ""
-                    fileSize : //isFolder ? (model.count ? model.count + i18n(" items") : "") : Maui.FM.formatSize(model.size)
-                    {
-                        if(isFolder)
-                        {
-                            if(model.count)
-                            {
-                                if(model.count.length > 4)
-                                {
-                                    "9999+" + i18n(" items")
-                                }else
-                                {
-                                    model.count + i18n(" items")
+                    fileDate: getDate(model.modified)
+                    fileSize: {
+                        if (isFolder) {
+                            if (model.count) {
+                                if (model.count.length > 4) {
+                                    "9999+ " + i18n("items")
+                                } else {
+                                    model.count + " " + i18n("items")
                                 }
-                            }else
-                            {
+                            } else {
                                 ""
                             }
-                        }else
-                        {
-                            // Maui.FM.formatSize(model.size)
-                            var fileSizeFormat = Maui.FM.formatSize(model.size)
-                            if(fileSizeFormat.indexOf("KiB") != -1)
-                            {
-                                fileSizeFormat = fileSizeFormat.replace("KiB", "K")
-                            }else if(fileSizeFormat.indexOf("MiB") != -1)
-                            {
-                                fileSizeFormat = fileSizeFormat.replace("MiB", "M")
-                            }else if(fileSizeFormat.indexOf("GiB") != -1)
-                            {
-                                fileSizeFormat = fileSizeFormat.replace("GiB", "G")
-                            }else
-                            {
+                        } else {
+                            var fileSizeFormat = Maui.FM.formatSizeForQulonglong(
+                                        model.size)
+                            if (fileSizeFormat.indexOf("KiB") !== -1) {
+                                fileSizeFormat = fileSizeFormat.replace("KiB",
+                                                                        "K")
+                            } else if (fileSizeFormat.indexOf("MiB") !== -1) {
+                                fileSizeFormat = fileSizeFormat.replace("MiB",
+                                                                        "M")
+                            } else if (fileSizeFormat.indexOf("GiB") !== -1) {
+                                fileSizeFormat = fileSizeFormat.replace("GiB",
+                                                                        "G")
+                            } else {
                                 fileSizeFormat
                             }
                         }
-
                     }
                     tagSource: getTagSource(model)
-                    isFolder : model.mime === "inode/directory"
-                    fileName : model.label
+                    isFolder: model.mime === "inode/directory"
+                    fileName: model.label
                     draggable: true
 
-                    onClicked:
-                    {
+                    onClicked: {
                         control.currentIndex = index
-
-                        if(String(root.currentPath).startsWith("trash:/") && !root.selectionMode)
-                        {
+                        if (String(root.currentPath).startsWith("trash:/")
+                                && !root.selectionMode) {
                             return
                         }
 
-                        if ((mouse.button == Qt.LeftButton) && (mouse.modifiers & Qt.ControlModifier))
+                        if ((mouse.button == Qt.LeftButton)
+                                && (mouse.modifiers & Qt.ControlModifier)) //ctrl + leftbutton
                         {
+                            root.selectionMode = true
                             _gridViewBrowser.itemsSelected([index])
-                        }else
-                        {
+                        } else {
                             _gridViewBrowser.itemClicked(index)
                         }
                     }
 
-                    onDoubleClicked:
-                    {
+                    onDoubleClicked: {
                         control.currentIndex = index
                         _gridViewBrowser.itemDoubleClicked(index)
                     }
 
-                    onPressAndHold:
-                    {
+                    onPressAndHold: {
                         var realMap = mapToItem(wholeScreen, mouse.x, mouse.y)
                         menuX = realMap.x
                         menuY = realMap.y
@@ -652,8 +516,7 @@ Maui.Page
                         _gridViewBrowser.itemRightClicked(index)
                     }
 
-                    onRightClicked:
-                    {
+                    onRightClicked: {
                         var realMap = mapToItem(wholeScreen, mouse.x, mouse.y)
                         menuX = realMap.x
                         menuY = realMap.y
@@ -661,83 +524,65 @@ Maui.Page
                         _gridViewBrowser.itemRightClicked(index)
                     }
 
-                    onToggled:
-                    {
+                    onToggled: {
                         control.currentIndex = index
                         _gridViewBrowser.itemToggled(index, state)
                     }
 
-                    onContentDropped:
-                    {
+                    onContentDropped: {
                         _dropMenu.urls = drop.urls.join(",")
                         _dropMenu.target = model.path
                         _dropMenu.popup()
                     }
-
-                    // Connections
-                    // {
-                    //     target: selectionBar
-
-                    //     function onUriRemoved(uri)
-                    //     {
-                    //         if(uri === model.path)
-                    //             delegate.checked = false
-                    //     }
-
-                    //     function onUriAdded(uri)
-                    //     {
-                    //         if(uri === model.path)
-                    //             delegate.checked = true
-                    //     }
-
-                    //     function onCleared(uri)
-                    //     {
-                    //         delegate.checked = false
-                    //     }
-                    // }
                 }
             }
         }
     }
 
-    function getDate(fileDate)//目前返回的AP是中文 所以需要进行替换 但是模拟器中设置的默认语言明明是英文
+    function getDate(fileDate)
     {
-        var tmp = fileDate ? Maui.FM.formatDate(fileDate, "yyyy.MM.dd hh:mm AP") : ""
-        tmp = tmp.replace("上午", "AM")
-        tmp = tmp.replace("下午", "PM")
+        var formatStr = "yyyy.MM.dd hh:mm AP"
+        if (leftMenuData.is24HourFormat()) {
+            formatStr = "yyyy.MM.dd hh:mm"
+        }
+        var tmp = fileDate ? Maui.FM.formatDate(fileDate, formatStr) : ""
+        if (formatStr == "yyyy.MM.dd hh:mm AP") {
+            tmp = tmp.replace("上午", "AM")
+            tmp = tmp.replace("下午", "PM")
+        }
         return tmp
     }
 
-    Connections
-    {
+    Connections {
         target: _compressedFile
 
-        onStartZip: 
-        {
-            const index  = root_zipList._uris.indexOf(filePath)
-            if(index < 0)
-            {
+        onStartZip: {
+            const index = root_zipList._uris.indexOf(filePath)
+            if (index < 0) {
                 root_zipList._uris.push(filePath)
             }
         }
 
-        onFinishZip: 
-        {
-            const index  = root_zipList._uris.indexOf(filePath)
-            if(index != -1)
-            {
+        onFinishZip: {
+            const index = root_zipList._uris.indexOf(filePath)
+            if (index != -1) {
                 root_zipList._uris.splice(index, 1)
             }
-            for(var j = 0; j < root.currentBrowser.currentFMList.count; j++)
-            {
+            for (var j = 0; j < root.currentBrowser.currentFMList.count; j++) {
                 var listItem = root.currentBrowser.currentFMModel.get(j)
-                if(listItem.path == filePath)
-                {
-                    root.currentBrowser.currentFMList.refreshItem(j, listItem.path)
+                if (listItem.path == filePath) {
+                    root.currentBrowser.currentFMList.refreshItem(j,
+                                                                  listItem.path)
                     break
                 }
             }
         }
+        onTipMessage: {
+            if (messageType === "decompressing") {
+                showToast(i18n("Existing decompressed file"))
+            } else if (messageType === "compressing") {
+                showToast(i18n("Existing compressed file"))
+            }
+        }
     }
 }
-

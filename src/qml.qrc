@@ -1,6 +1,11 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>widgets/views/FileMainView.qml</file>
+        <file>widgets/views/FileRightView.qml</file>
+        <file>widgets/views/titlebar/FileTopBarView.qml</file>
+        <file>widgets/views/titlebar/FileEditBarView.qml</file>
+        <file>widgets/views/titlebar/FileTrashBarView.qml</file>
         <file>widgets/views/Browser.qml</file>
         <file>widgets/views/Terminal.qml</file>
         <file>widgets/views/PlacesSideBar.qml</file>
@@ -25,18 +30,16 @@
         <file>assets/right_arrow.png</file>
         <file>assets/index_new.svg</file>
         <file>assets/image_back.png</file>
-
         <file>assets/nextTrack.png</file>
         <file>assets/play.png</file>
         <file>assets/pause.png</file>
         <file>assets/previousTrack.png</file>
-
         <file>assets/zip.gif</file>
         <file>assets/unzip.gif</file>
-
+        <file>assets/black_zip.gif</file>
+        <file>assets/black_unzip.gif</file>
         <file>assets/leftarrow.png</file>
         <file>assets/rightarrow.png</file>
-
         <file>assets/unselect_rect.png</file>
         <file>assets/unselect_copy.png</file>
         <file>assets/unselect_cut.png</file>
@@ -47,7 +50,6 @@
         <file>assets/unselect_fav.png</file>
         <file>assets/unselect_recover.png</file>
         <file>assets/unselect_delete_all.png</file>
-        
         <file>assets/select_rect.png</file>
         <file>assets/select_copy.png</file>
         <file>assets/select_cut.png</file>
@@ -58,14 +60,12 @@
         <file>assets/select_fav.png</file>
         <file>assets/select_recover.png</file>
         <file>assets/select_delete_all.png</file>
-
         <file>assets/select_all.png</file>
         <file>assets/folder_icon.png</file>
         <file>assets/add_folder.png</file>
         <file>assets/menu_grid.png</file>
         <file>assets/menu_list.png</file>
         <file>assets/search_icon.png</file>
-
         <file>assets/arrow_down.png</file>
         <file>assets/arrow_up.png</file>
         <file>assets/view_select.png</file>
@@ -76,7 +76,7 @@
         <file>assets/order_by_name.png</file>
         <file>assets/order_by_size.png</file>
         <file>assets/order_by_tag.png</file>
-
+        <file>assets/text.png</file>
         <file>assets/ppt.png</file>
         <file>assets/zip.png</file>
         <file>assets/7zip.png</file>
@@ -91,7 +91,7 @@
         <file>assets/tag_edit.png</file>
         <file>assets/image_set_wallpaper.png</file>
         <file>assets/image_delete.png</file>
-        
+        <file>assets/text.svg</file>
         <file>assets/music.svg</file>
         <file>assets/excel.svg</file>
         <file>assets/ppt.svg</file>
@@ -105,7 +105,6 @@
         <file>assets/rar.svg</file>
         <file>assets/tar.svg</file>
         <file>assets/folder_icon.svg</file>
-
         <file>assets/leftmenu/downArrow.png</file>
         <file>assets/leftmenu/upArrow.png</file>
         <file>assets/leftmenu/documentSelect.png</file>
@@ -150,8 +149,6 @@
         <file>assets/leftmenu/tag5Select.png</file>
         <file>assets/leftmenu/tag6Select.png</file>
         <file>assets/leftmenu/tag7Select.png</file>
-
-        <!-- 编辑态用的大图 60x60 讲道理用一个就行 但是要求图标的清晰度 不进行放大缩小操作 所以这里使用60x60 -->
         <file>assets/tagedit/tag0.png</file>
         <file>assets/tagedit/tag1.png</file>
         <file>assets/tagedit/tag2.png</file>
@@ -169,8 +166,6 @@
         <file>assets/tagedit/tag6_select.png</file>
         <file>assets/tagedit/tag7_select.png</file>
         <file>widgets/views/EditTagMenu.qml</file>
-
-
         <file>assets/popupmenu/bat_edit.png</file>
         <file>assets/popupmenu/open_mode.png</file>
         <file>assets/popupmenu/copy.png</file>
@@ -188,8 +183,6 @@
         <file>assets/popupmenu/recover.png</file>
         <file>assets/popupmenu/add_folder.png</file>
         <file>assets/popupmenu/open_in_terminal.png</file>
-        
-
         <file>widgets/views/BrowserHolder.qml</file>
         <file>widgets/views/BrowserItem.qml</file>
         <file>widgets/views/BrowserMenu.qml</file>
@@ -210,9 +203,17 @@
         <file>widgets/views/GrideBrowser.qml</file>
         <file>widgets/views/GridDelegate.qml</file>
         <file>widgets/views/CustomPopup.qml</file>
+        <file>widgets/views/JFileViewIcon.qml</file>
         <file>widgets/views/MenuList.qml</file>
         <file>widgets/views/OpenWithDialog.qml</file>
-
         <file>widgets/previewer/SelectionBar.qml</file>
+        <file>widgets/views/ProcessView.qml</file>
+        <file>assets/pdf.svg</file>
+        <file>assets/paste.gif</file>
+        <file>assets/paste_black.gif</file>
+        <file>assets/resume.svg</file>
+        <file>assets/suspend.svg</file>
+        <file>assets/select_eject.svg</file>
+        <file>assets/unselect_eject.svg</file>
     </qresource>
 </RCC>

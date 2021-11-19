@@ -21,6 +21,7 @@ else()
         controllers/filepreviewer.cpp
         controllers/compressedfile.cpp
         models/left_menu/leftmenudata.cpp
+        models/ProcessModel.cpp
         ${hjyRec}
     )
 endif()
@@ -39,7 +40,9 @@ endif()
 target_compile_definitions(index
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 
-target_link_libraries(index MauiKit Qt5::Sql Qt5::Quick Qt5::Qml Qt5::Svg KF5::Archive KF5::CoreAddons KF5::I18n)
+
+find_package(KF5DBusAddons REQUIRED)
+target_link_libraries(index MauiKit Qt5::Sql Qt5::Quick Qt5::Qml Qt5::Svg KF5::Archive KF5::CoreAddons KF5::I18n KF5::DBusAddons jappcoreqt)
 
 #TODO: port to ecm_install_icons()
 if(UNIX AND NOT APPLE AND NOT ANDROID)

@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2021 Beijing Jingling Information System Technology Co., Ltd. All rights reserved.
+ *
+ * Authors:
+ * Zhang He Gang <zhanghegang@jingos.com>
+ *
+ */
 import QtQuick 2.9
 import org.kde.kirigami 2.15 as Kirigami
 import org.kde.mauikit 1.3 as Maui
@@ -5,7 +12,7 @@ import QtQuick.Controls 2.14
 
 Rectangle {
     id: listViewDelegate
-
+    implicitHeight: 44 * appScaleSize
     property string iconSource
     property string tagSource
     property string fileSize
@@ -14,186 +21,98 @@ Rectangle {
     property string tagColor
     property bool isFolder
     property int textDefaultSize: theme.defaultFont.pointSize
-    property bool checked: _selectionBar.contains(path)
-    property bool isRename: _renameSelectionBar.contains(path)
+    property bool checked: _selectionBar.contains(model.nickname)
+    property bool isRename: root_renameSelectionBar.contains(path)
+
     property bool menuSelect: false
     property string tmpName
     property var clickMouse
-    /**
-      * draggable :
-      */
+    property bool isDarkTheme: Kirigami.JTheme.colorScheme === "jingosDark"
+
     property bool draggable: false
-
-
-    /**
-      * pressed :
-      */
     signal pressed(var mouse)
-
-    /**
-      * pressAndHold :
-      */
     signal pressAndHold(var mouse)
-
-    /**
-      * clicked :
-      */
     signal clicked(var mouse)
 
-    /**
-      * rightClicked :
-      */
     signal rightClicked(var mouse)
 
-    /**
-      * doubleClicked :
-      */
     signal doubleClicked(var mouse)
 
     signal contentDropped(var drop)
-
-    /**
-      * toggled :
-      */
     signal toggled(bool state)
 
-    color: "#FFFFFFFF"
+    color: "transparent"
     radius: 10
-    // color: "#2E3C3C43"
 
-    Image //编辑态时的选中 非选中状态
-    {
-        id: checkStatusImage
+    MouseArea {
+        id: _mouseArea
+        anchors.fill: parent
+        acceptedButtons: Qt.RightButton | Qt.LeftButton
+        property bool pressAndHoldIgnored: false
+        drag.axis: Drag.XAndYAxis
 
-        anchors{
-            left: parent.left
-            leftMargin: 8
-            verticalCenter: parent.verticalCenter
+        onPressed: {
+            listViewDelegate.color = Kirigami.JTheme.pressBackground
+        }
+        onReleased: {
+            listViewDelegate.color = "#00000000"
         }
 
-        width: 22
-        height: 22
+        onCanceled: {
+            if (listViewDelegate.draggable) {
+                drag.target = null
+            }
+            listViewDelegate.color = "#00000000"
+        }
 
-        cache: false
-        source: 
-        {
-            if(checked)
-            {
-                "qrc:/assets/select_all.png"
-            }else{
-                "qrc:/assets/unselect_rect.png"
+        onClicked: {
+            if (mouse.button === Qt.RightButton) {
+                listViewDelegate.rightClicked(mouse)
+            } else {
+                clickMouse = mouse
+                timer.start()
             }
         }
-        
-        visible: 
-        {
-            if(root.selectionMode)
-            {
-                true
-            }else
-            {
-                false
-            }
+
+        onDoubleClicked: {
+            listViewDelegate.doubleClicked(mouse)
+        }
+
+        onPressAndHold: {
+            drag.target = null
+            listViewDelegate.pressAndHold(mouse)
         }
     }
 
-    // Kirigami.Icon//文件或者文件夹icon
-    // {
-    //     id: iconImage
-
-    //     anchors{
-    //         left: 
-    //         {
-    //             if(root.selectionMode)
-    //             {
-    //                 checkStatusImage.right
-    //             }else
-    //             {
-    //                 parent.left
-    //             }
-    //         }
-    //         leftMargin: 
-    //         {
-    //             if(root.selectionMode)
-    //             {
-    //                 10
-    //             }else
-    //             {
-    //                 0
-    //             }
-    //         }
-    //         verticalCenter: parent.verticalCenter
-    //     }
-    //     width: 88
-    //     height: width
-    //     source: 
-    //     {
-    //         // if(mime.indexOf("image") == -1)
-    //         // {
-    //                 iconSource
-    //         // }else
-    //         // {
-    //         //     thumbnail
-    //         // }
-    //     }
-    //     isMask: true
-    // }
-
-
-    Image
+    Kirigami.JIconButton
     {
+        id: checkStatusImage
+        anchors.verticalCenter: parent.verticalCenter
+        width: (22 + 10) * appScaleSize
+        height: (22 + 10) * appScaleSize
+        visible: root.selectionMode
+        source: checked ? "qrc:/assets/select_all.png" : "qrc:/assets/unselect_rect.png"
+        hoverEnabled: false
+    }
+
+    Image {
         id: iconImage
-        asynchronous: true
-        cache: true
-        smooth: false
-        sourceSize.width: 44
-        sourceSize.height: 44
-
-        fillMode: Image.PreserveAspectCrop
-        anchors{
-            left: 
-            {
-                if(root.selectionMode)
-                {
-                    checkStatusImage.right
-                }else
-                {
-                    parent.left
-                }
-            }
-            leftMargin: 
-            {
-                if(root.selectionMode)
-                {
-                    5
-                }else
-                {
-                    0 + 5
-                }
-            }
-            verticalCenter: parent.verticalCenter
-        }
-
-        width: 44
-        height: 44
+        width: 44 * appScaleSize
+        height: 44 * appScaleSize
+        anchors.left: root.selectionMode ? checkStatusImage.right : parent.left
+        anchors.leftMargin: checkStatusImage.visible ? 5 * appScaleSize : 0
         visible: !root_zipList._uris.includes(model.path)
-        source: 
-        {
-            iconSource
-        }
-
-        Connections
-        {
+        fillMode: Image.PreserveAspectFit
+        source: iconSource
+        asynchronous: true
+        Connections {
             target: leftMenuData
-            onRefreshImageSource: 
-            {
-                if(iconSource == imagePath)
-                {
-                    if(mime.indexOf("image") != -1)
-                    {
+
+            function onRefreshImageSource(imagePath) {
+                if (iconSource === imagePath) {
+                    if (mime.indexOf("image") !== -1) {
                         iconImage.source = "qrc:/assets/image_default.png"
-                    }else if(mime.indexOf("video") != -1)
-                    {
+                    } else if (mime.indexOf("video") !== -1) {
                         iconImage.source = "qrc:/assets/video_default.png"
                     }
                     iconImage.source = imagePath
@@ -202,465 +121,233 @@ Rectangle {
         }
     }
 
-    AnimatedImage
-    {
+    AnimatedImage {
         id: gifImage
-
-        width: 44
-        height: 44
-
-        fillMode: Image.PreserveAspectFit
-        anchors{
-            left: 
-            {
-                if(root.selectionMode)
-                {
-                    checkStatusImage.right
-                }else
-                {
-                    parent.left
-                }
-            }
-            leftMargin: 
-            {
-                if(root.selectionMode)
-                {
-                    5
-                }else
-                {
-                    0 + 5
-                }
-            }
-            verticalCenter: parent.verticalCenter
-        }
-
-        source: 
-        {
-            if(model.label.indexOf(".zip") != -1)
-            {
-                "qrc:/assets/zip.gif"
-            }else
-            {
-                "qrc:/assets/unzip.gif"
-            }
-        }
+        width: 44 * appScaleSize
+        height: 44 * appScaleSize
+        anchors.left: root.selectionMode ? checkStatusImage.right : parent.left
+        anchors.leftMargin: checkStatusImage.visible ? 5 * appScaleSize : 0
+        source: model.label.indexOf(
+                    ".zip") !== -1 ? "qrc:/assets/zip.gif" : "qrc:/assets/unzip.gif"
 
         visible: root_zipList._uris.includes(model.path)
-
         playing: visible
-        
-        MouseArea 
-        {
-        }
     }
 
-    Kirigami.Icon
-    {
+    Kirigami.Icon {
+        height: 44 * appScaleSize
+        width: 44 * appScaleSize
+
+        anchors.left: root.selectionMode ? checkStatusImage.right : parent.left
+        anchors.leftMargin: checkStatusImage.visible ? 5 * appScaleSize : 0
         visible: iconImage.status !== Image.Ready
-        anchors{
-            left: 
-            {
-                if(root.selectionMode)
-                {
-                    checkStatusImage.right
-                }else
-                {
-                    parent.left
-                }
-            }
-            leftMargin: 
-            {
-                if(root.selectionMode)
-                {
-                    5
-                }else
-                {
-                    0 + 5
-                }
-            }
-            verticalCenter: parent.verticalCenter
-        }
-        height: 44
-        width: 44
-        source: 
-        {
-            if(mime.indexOf("image") != -1)
-            {
-                "qrc:/assets/image_default.png"
-            }else if(mime.indexOf("video") != -1)
-            {
-                "qrc:/assets/video_default.png"
-            }else
-            {
-                "qrc:/assets/default.png"
-            }
-        }
+        source: mime.indexOf(
+                    "image") !== -1 ? "qrc:/assets/image_default.png" : (mime.indexOf("video") !== -1 ? "qrc:/assets/video_default.png" : "qrc:/assets/default.png")
         isMask: false
         opacity: 0.5
     }
 
-    Rectangle{//文件名称和文件大小 或者文件夹名称和文件多少
-        id:fileNameSize
-
-        anchors{
+    Item {
+        anchors {
             left: iconImage.right
-            leftMargin: 15
-            verticalCenter: parent.verticalCenter
+            leftMargin: 12 * appScaleSize
+            top: parent.top
+            topMargin: 3 * appScaleSize
         }
         width: parent.width / 2
-        height: fileSizeText.height + fileNameText.height + 13//iconImage.height - 20
-        color: "transparent"
+        height: fileSizeText.height + fileText.height + 13 * appScaleSize //iconImage.height - 20
 
         Text {
-            visible:
-            {
-                if(!isRename)
-                {
-                    true
-                }else
-                {
-                    false
-                }
-            } 
-            id: fileNameText1
-            anchors{
-                top: parent.top
-                topMargin: 12
-                left: parent.left
-            }
+            id: fileText
             width: parent.width
+            visible: !isRename
             text: fileName
-            font.pixelSize: 11
-            color: "black"
+            font.pixelSize: 13 * appFontSize
+            color: Kirigami.JTheme.majorForeground
             wrapMode: Text.WrapAnywhere
             maximumLineCount: 1
             elide: Text.ElideRight
-            clip: true
         }
 
-        TextField  {
-                background: Rectangle
-                {
-                    color: "#00000000"
-                }
-                visible: 
-                {
-                    if(!isRename)
-                    {
-                        false
-                    }else
-                    {
-                        true
-                    }
-                }
-                id: fileNameText
-                anchors{
-                    top: parent.top
-                    topMargin: 4
-                    left: parent.left
-                    leftMargin: -8
-                }
-                text:
-                {
-                    fileName
-                } 
-                maximumLength: 50
-                font.pixelSize: 11
-                color: "black"
-                horizontalAlignment: Text.AlignLeft
-                clip: true
-                selectionColor: "#FF3C4BE8"
-                width: parent.width
+        Kirigami.JTextField {
+            id: fileNameText
 
-                onEditingFinished: {
-                    if((fileNameText.text.indexOf("#") != -1)
-                    || (fileNameText.text.indexOf("/") != -1)
-                    || (fileNameText.text.indexOf("?") != -1))
-                    {//不允许包含特殊字符
-                        fileNameText.text = tmpName
-                        showToast(i18n("The file name cannot contain the following characters: '# / ?'"))
-                    }else if(fileNameText.text.startsWith("."))
-                    {
-                        fileNameText.text = tmpName
-                        showToast(i18n("The file name cannot starts whit character: '.'"))
-                    }else
-                    {
-                        var canRename = true
-                        var userNotRename = false //处理用户rename了，但是没有任何修改直接退出了rename状态
-                        for(var i = 0; i < currentBrowser.currentFMList.count; i++)
-                        {
-                            var item = currentFMModel.get(i)
-                            if(item.label == fileNameText.text)
-                            {
-                                if(item.path != model.path)
-                                {
-                                    canRename = false
-                                }else
-                                {
-                                    userNotRename = true
-                                }
-                                break
+            width: parent.width
+            anchors {
+                left: parent.left
+                leftMargin: -8 * appScaleSize
+            }
+            clearButtonShown: false
+
+            visible: isRename
+            text: fileName
+            maximumLength: 50
+            font.pixelSize: 12 * appFontSize
+            horizontalAlignment: Text.AlignLeft
+
+            background: Item {}
+
+            onEditingFinished: {
+                if ((fileNameText.text.indexOf("#") != -1)
+                        || (fileNameText.text.indexOf("/") != -1)
+                        || (fileNameText.text.indexOf("?") != -1)) {
+                    //不允许包含特殊字符
+                    fileNameText.text = tmpName
+                    showToast(i18n(
+                                  "The file name cannot contain the following characters: '# / ?'"))
+                } else if (fileNameText.text.startsWith(".")) {
+                    fileNameText.text = tmpName
+                    showToast(i18n("The file name cannot starts whit character: '.'"))
+                } else {
+                    var canRename = true
+                    var userNotRename = false
+                    for (var i = 0; i < currentBrowser.currentFMList.count; i++) {
+                        var item = currentFMModel.get(i)
+                        if (item.label == fileNameText.text) {
+                            if (item.path != model.path) {
+                                canRename = false
+                            } else {
+                                userNotRename = true
                             }
-                        }
-
-                        if(!userNotRename)
-                        {
-                            if(canRename)
-                            {
-                                var collectionList = leftMenuData.getCollectionList();
-                                var needRefreshCollection = false
-                                if(leftMenuData.isCollectionFolder(path))
-                                {
-                                    leftMenuData.addFolderToCollection(path.toString(), true, false)
-                                    needRefreshCollection = true
-                                }
-
-                                Maui.FM.rename(path, fileNameText.text)
-
-                                if(item.mime.indexOf("image/jpeg") != -1
-                                || item.mime.indexOf("video") != -1)//对于生成了缩略图的文件来说 重命名时 会连带缩略图一起
-                                {
-                                    var index = item.path.lastIndexOf(".")
-                                    var newPath = item.path.substring(0, index)//path/name
-                                    index = newPath.lastIndexOf("/")
-                                    var startPath = newPath.substring(0, index + 1);//path/
-                                    var endPath = newPath.substring(index + 1, newPath.length)//name
-                                    var tmpPreview = startPath + "." + endPath + ".jpg"
-                                    Maui.FM.rename(tmpPreview, "." + fileNameText.text)
-                                }
-
-                                if(root.isSpecialPath)//如果是特殊目录，系统不会自动刷新，那么需要自行刷新
-                                {
-                                    timer_refresh.start()
-                                }
-
-                                if(needRefreshCollection)
-                                {
-                                    timer_fav.start();
-                                }
-                            }else
-                            {
-                                fileNameText.text = tmpName
-                                showToast(i18n("The file name already exists."))
-                            }
+                            break
                         }
                     }
-                    root_renameSelectionBar.clear()
-                }
 
-                onFocusChanged:
-                {
-                    if(focus)
-                    {
-                        tmpName = fileNameText.text
+                    if (!userNotRename) {
+                        if (canRename) {
+                            var collectionList = leftMenuData.getCollectionList(
+                                        )
+                            var needRefreshCollection = false
+                            var needRefresh = false
+                            if (leftMenuData.isCollectionFolder(path)) {
+                                leftMenuData.addFolderToCollection(
+                                            path.toString(), true, false)
+                                needRefreshCollection = true
+                            }
+                            if (leftMenuData.isTagFile(path) !== -1) {
+                                needRefresh = true
+                            }
+
+                            Maui.FM.rename(path, fileNameText.text)
+
+                            if (item.mime.indexOf("image/jpeg") !== -1
+                                    || item.mime.indexOf(
+                                        "video") !== -1)
+                            {
+                                var index = item.path.lastIndexOf(".")
+                                var newPath = item.path.substring(
+                                            0, index) //path/name
+                                index = newPath.lastIndexOf("/")
+                                var startPath = newPath.substring(0, index + 1)
+                                //path/
+                                var endPath = newPath.substring(
+                                            index + 1, newPath.length) //name
+                                var tmpPreview = startPath + "." + endPath + ".jpg"
+                                Maui.FM.rename(tmpPreview,
+                                               "." + fileNameText.text)
+                            }
+
+                            if (root.isSpecialPath || needRefresh)
+                            {
+                                timer_refresh.start()
+                            }
+
+                            if (needRefreshCollection) {
+                                timer_fav.start()
+                            }
+                        } else {
+                            fileNameText.text = tmpName
+                            showToast(i18n("The file name already exists."))
+                        }
                     }
                 }
+                root_renameSelectionBar.clear()
             }
 
-        // TextInput 
-        // {
-        //     id: fileNameText
-        //     anchors{
-        //         top: parent.top
-        //     }
-        //     text: 
-        //     {
-        //         fileName
-        //     }
-        //     font.pointSize: textDefaultSize - 3
-        //     color: "black"
-        //     // width: parent.width - 5
-        //     horizontalAlignment: Text.AlignLeft
-        //     wrapMode: Text.NoWrap
-        //     clip: true
-        //     maximumLength: 50
-        //     selectionColor: "#FF3C4BE8"
-
-        //     onEditingFinished: {
-        //         if((fileNameText.text.indexOf("#") != -1)
-        //         || (fileNameText.text.indexOf("/") != -1)
-        //         || (fileNameText.text.indexOf("?") != -1))
-        //         {
-        //             fileNameText.text = tmpName
-        //             showToast(i18n("The file name cannot contain the following characters: '# / ?'"))
-        //         }else if(fileNameText.text.startsWith("."))
-        //         {
-        //             fileNameText.text = tmpName
-        //             showToast(i18n("The file name cannot starts whit character: '.'"))
-        //         }
-        //         else
-        //         {
-        //             var canRename = true
-        //             var userNotRename = false //处理用户rename了，但是没有任何修改直接退出了rename状态
-        //             for(var i = 0; i < currentBrowser.currentFMList.count; i++)
-        //             {
-        //                 var item = currentFMModel.get(i)
-        //                 if(item.label == fileNameText.text)
-        //                 {
-        //                     if(item.path != model.path)
-        //                     {
-        //                         canRename = false
-        //                     }else
-        //                     {
-        //                         userNotRename = true
-        //                     }
-        //                     break
-        //                 }
-        //             }
-
-        //             if(!userNotRename)
-        //             {
-        //                 if(canRename)
-        //                 {
-        //                     var collectionList = leftMenuData.getCollectionList();
-        //                     var needRefreshCollection = false
-        //                     if(leftMenuData.isCollectionFolder(path))
-        //                     {
-        //                         leftMenuData.addFolderToCollection(path.toString(), true, false)
-        //                         needRefreshCollection = true
-        //                     }
-
-        //                     Maui.FM.rename(path, fileNameText.text)
-
-        //                     if(item.mime.indexOf("image/jpeg") != -1
-        //                     || item.mime.indexOf("video") != -1)//对于生成了缩略图的文件来说 重命名时 会连带缩略图一起
-        //                     {
-        //                         var index = item.path.lastIndexOf(".")
-        //                         var newPath = item.path.substring(0, index)//path/name
-        //                         index = newPath.lastIndexOf("/")
-        //                         var startPath = newPath.substring(0, index + 1);//path/
-        //                         var endPath = newPath.substring(index + 1, newPath.length)//name
-        //                         var tmpPreview = startPath + "." + endPath + ".jpg"
-        //                         Maui.FM.rename(tmpPreview, "." + fileNameText.text)
-        //                     }
-
-        //                     if(root.isSpecialPath)//如果是特殊目录，系统不会自动刷新，那么需要自行刷新
-        //                     {
-        //                         timer_refresh.start()
-        //                     }
-
-        //                     if(needRefreshCollection)
-        //                     {
-        //                         timer_fav.start();
-        //                     }
-        //                 }else
-        //                 {
-        //                     fileNameText.text = tmpName
-        //                     showToast(i18n("The file name already exists."))
-        //                 }
-        //             }
-        //         }
-        //         root_renameSelectionBar.clear()
-        //     }
-
-        //     onFocusChanged:
-        //     {
-        //         if(focus)
-        //         {
-        //             tmpName = fileNameText.text
-        //         }
-        //     }
-        // }
+            onFocusChanged: {
+                if (focus) {
+                    tmpName = fileNameText.text
+                }
+            }
+        }
 
         Text {
             id: fileSizeText
 
-            anchors{
-                top: fileNameText.bottom
-                //topMargin: 13
-            }
+            anchors.top: fileText.bottom
+            anchors.topMargin: 2 * appScaleSize
             text: fileSize
 
-            font.pixelSize: 10
-            color: "#4D000000"
+            font.pixelSize: 10 * appFontSize
+            color: Kirigami.JTheme.minorForeground //"#4D000000
 
-            visible:
-            {
-                if(String(root.currentPath).startsWith("trash:/") && model.isdir == "true")
-                {
+            visible: {
+                if (String(root.currentPath).startsWith("trash:/")
+                        && model.isdir == "true") {
                     false
-                }else
-                {
+                } else {
                     true
                 }
             }
         }
     }
 
-    // Rectangle{
-    //     id:tagRect
-    //     anchors{
-    //         right: fileDateText.left
-    //         rightMargin: 10
-    //         verticalCenter: fileDateText.verticalCenter
-    //     }
-    //     width: tagColor !== "" ? 10 : 0
-    //     height: width
-    //     radius: width/2
-    //     color: "#FFFF0000"//tagColor
-    // }
-
-    Image{
-        id:tagRect
-        anchors{
+    Image {
+        id: tagRect
+        anchors {
             right: fileDateText.left
-            rightMargin: 6
-            verticalCenter: fileDateText.verticalCenter//parent.verticalCenter//fileDateText.verticalCenter
-            // top: fileDateText.top
-            // topMargin: -5
+            rightMargin: 6 * appScaleSize
+            verticalCenter: fileDateText.verticalCenter
         }
-        width: tagSource !== "" ? 16 : 0
-        height: 16
+        width: tagSource !== "" ? 16 * appScaleSize : 0
+        height: 16 * appScaleSize
         source: tagSource
     }
 
-    Text {//最后修改日期
+    Text {
         id: fileDateText
 
-        anchors{
+        anchors {
             right: parent.right
-            rightMargin: 22 + 10
+            rightMargin: (22 + 10) * appScaleSize
             verticalCenter: parent.verticalCenter
         }
         text: fileDate
-        // font.pointSize:  textDefaultSize - 3
-        font.pixelSize: 11
-        color: "#4D000000"
+        font.pixelSize: 11 * appFontSize
+        color: Kirigami.JTheme.minorForeground
     }
 
-    Loader{
-        id:rightArrowLoader
+    Loader {
+        id: rightArrowLoader
         sourceComponent: rightArrowComponent
         active: isFolder
     }
-    Component{
-        id:rightArrowComponent
-        Item{
+    Component {
+        id: rightArrowComponent
+        Item {
             width: listViewDelegate.width
             height: listViewDelegate.height
-            Image {
+            Kirigami.Icon {
                 id: rightArrowImage
 
-                anchors{
+                anchors {
                     right: parent.right
                     verticalCenter: parent.verticalCenter
                 }
-                width: 22
-                height: 22
-                asynchronous: true
+                width: 22 * appScaleSize
+                height: 22 * appScaleSize
                 source: "qrc:/assets/right_arrow.png"
+                color: Kirigami.JTheme.majorForeground
             }
         }
     }
 
-    DropArea
-    {
+    DropArea {
         id: _dropArea
         anchors.fill: parent
         enabled: listViewDelegate.draggable
 
-        Rectangle
-        {
+        Rectangle {
             anchors.fill: parent
             radius: 10
             color: "blue"
@@ -668,154 +355,84 @@ Rectangle {
             opacity: 0.3
         }
 
-        onDropped:
-        {
+        onDropped: {
             listViewDelegate.contentDropped(drop)
         }
     }
 
-    MouseArea
-    {
-        id: _mouseArea
-        anchors.fill: parent
-        acceptedButtons:  Qt.RightButton | Qt.LeftButton
-        property bool pressAndHoldIgnored : false
-        drag.axis: Drag.XAndYAxis
-
-        onCanceled:
-        {
-            if(listViewDelegate.draggable)
-            {
-                drag.target = null
-            }
-        }
-
-        onClicked:
-        {
-            if(mouse.button === Qt.RightButton)
-            {
-                listViewDelegate.rightClicked(mouse)
-            }
-            else
-            {
-                listViewDelegate.color = "#1F767680"
-                clickMouse = mouse
-                timer.start()
-            }
-        }
-
-        onDoubleClicked:
-        {
-            listViewDelegate.doubleClicked(mouse)
-        }
-
-        onPressAndHold :
-        {
-          
-                drag.target = null
-                listViewDelegate.pressAndHold(mouse)
-        }
-    }
-
-    Connections
-    {
+    Connections {
         target: root_selectionBar
-
-        onUriRemoved:
-        {
-            if(String(root.currentPath).startsWith("trash:/"))    
-            {
-                if(uri === model.nickname)
-                {
+        function onUriRemoved(uri) {
+            if (String(root.currentPath).startsWith("trash:/")) {
+                if (uri === model.nickname) {
                     listViewDelegate.checked = false
                 }
-            }else
-            {
-                if(uri === model.path)
-                {
+            } else {
+                if (uri === model.path) {
                     listViewDelegate.checked = false
                 }
             }
         }
 
-        onUriAdded:
-        {
-            if(String(root.currentPath).startsWith("trash:/"))    
-            {
-                if(uri === model.nickname)
-                {
+        function onUriAdded(uri) {
+            if (String(root.currentPath).startsWith("trash:/")) {
+                if (uri === model.nickname) {
                     listViewDelegate.checked = true
                 }
-            }else
-            {
-                if(uri === model.path)
-                {
+            } else {
+                if (uri === model.path) {
                     listViewDelegate.checked = true
                 }
             }
         }
-
-        onCleared: listViewDelegate.checked = false
+        function onCleared() {
+            listViewDelegate.checked = false
+        }
     }
 
-    Connections
-    {
+    Connections {
         target: root_renameSelectionBar
-        
-        onUriRemoved:
-        {
-            if(uri === model.path)
-            {
+        function onUriRemoved(uri) {
+            if (uri === model.path) {
                 fileNameText.focus = false
                 isRename = false
             }
         }
 
-        onUriAdded:
-        {
-            if(uri === model.path)
-            {
+        function onUriAdded(uri) {
+            if (uri === model.path) {
                 fileNameText.forceActiveFocus()
                 var indexOfd = fileNameText.text.lastIndexOf(".")
-                if(indexOfd != -1)
-                {
+                if (indexOfd != -1) {
                     fileNameText.select(0, indexOfd)
-                }else
-                {
+                } else {
                     fileNameText.selectAll()
                 }
                 isRename = true
             }
         }
 
-        onCleared: 
-        {
+        function onCleared() {
             fileNameText.focus = false
+            isRename = false
         }
     }
 
-    Connections
-    {
+    Connections {
         target: root_menuSelectionBar
 
-        onUriRemoved:
-        // function onUriRemoved() 
-        {
-            if(uri === model.path)
-                listViewDelegate.color = "#FFFFFFFF"
+        function onUriRemoved(uri) {
+            if (uri === model.path)
+                listViewDelegate.color = "transparent"
         }
 
-        onUriAdded:
-        // function onUriAdded() 
-        {
-            if(uri === model.path)
+        function onUriAdded(uri) {
+            if (uri === model.path)
                 listViewDelegate.color = "#1F9F9FAA"
         }
 
-        onCleared: 
-        // function onCleared() 
-        {
-            listViewDelegate.color = "#FFFFFFFF"
+        function onCleared() {
+            listViewDelegate.color = "transparent"
         }
     }
 
@@ -825,7 +442,7 @@ Rectangle {
         repeat: false
         interval: 50
         onTriggered: {
-            listViewDelegate.color = "#FFFFFFFF"
+            listViewDelegate.color = "transparent"
             listViewDelegate.clicked(clickMouse)
         }
     }
@@ -838,7 +455,8 @@ Rectangle {
         onTriggered: {
             var index = path.lastIndexOf("/")
             var startPath = path.substring(0, index + 1)
-            leftMenuData.addFolderToCollection((startPath + fileNameText.text).toString(), false, true)
+            leftMenuData.addFolderToCollection(
+                        (startPath + fileNameText.text).toString(), false, true)
         }
     }
 
@@ -848,16 +466,8 @@ Rectangle {
         repeat: false
         interval: 100
         onTriggered: {
+            leftMenuData.updateTagUrl()
             root.currentBrowser.currentFMList.refresh()
-            // for(var j = 0; j < root.currentBrowser.currentFMList.count; j++)
-            // {
-            //     var listItem = root.currentBrowser.currentFMModel.get(j)
-            //     if(listItem.path == path)
-            //     {
-            //         root.currentBrowser.currentFMList.refreshItem(j, listItem.path)
-            //         break
-            //     }
-            // }
         }
     }
 }

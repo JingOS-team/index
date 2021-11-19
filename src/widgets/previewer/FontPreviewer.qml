@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2021 Beijing Jingling Information System Technology Co., Ltd. All rights reserved.
+ *
+ * Authors:
+ * Zhang He Gang <zhanghegang@jingos.com>
+ *
+ */
 import QtQuick 2.14
 import QtQuick.Controls 2.14
 import QtQuick.Layouts 1.3
@@ -48,7 +55,7 @@ Maui.Page
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 text: abc.toUpperCase()
                 color: Kirigami.Theme.textColor
-                font.pointSize: 30
+                font.pointSize: 30 * appFontSize
             }
 
             Label
@@ -58,7 +65,7 @@ Maui.Page
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 text: abc
                 color: Kirigami.Theme.textColor
-                font.pointSize: 20
+                font.pointSize: 20 * appFontSize
             }
 
             Label
@@ -68,7 +75,7 @@ Maui.Page
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 text: nums
                 color: Kirigami.Theme.textColor
-                font.pointSize: 30
+                font.pointSize: 30 * appFontSize
             }
 
             Label
@@ -88,7 +95,7 @@ Maui.Page
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 text: symbols
                 color: Kirigami.Theme.textColor
-                font.pointSize: 15
+                font.pointSize: 15 * appFontSize
             }
         }
     }

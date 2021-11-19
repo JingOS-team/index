@@ -1,14 +1,14 @@
 /*
- * SPDX-FileCopyrightText: 2020 Jonah Brüchert <jbb@kaidan.im>
- * SPDX-FileCopyrightText: (C) 2021 Wangrui <Wangrui@jingos.com>
+ * Copyright (C) 2021 Beijing Jingling Information System Technology Co., Ltd. All rights reserved.
  *
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * Authors:
+ * Zhang He Gang <zhanghegang@jingos.com>
+ *
  */
 
-#include "models/left_menu/leftmenudata.h"
+#include "leftmenudata.h"
 
 #include <QFile>
-#include <QDebug>
 #include <QDir>
 
 #ifdef STATIC_MAUIKIT
@@ -26,7 +26,6 @@
 #include <QtConcurrent>
 #include <QFuture>
 
-#include <kio/previewjob.h>
 #include <QPixmap>
 
 #include <QStandardPaths>
@@ -34,44 +33,153 @@
 #include <solid/opticaldisc.h>
 #include <solid/opticaldrive.h>
 #include <solid/portablemediaplayer.h>
-#include <solid/predicate.h>
-#include <solid/storageaccess.h>
+
 #include <solid/storagedrive.h>
 #include <solid/storagevolume.h>
+#include <KConfigGroup>
+#include <KSharedConfig>
+#include <QUrl>
 
 /* ~ LeftMenuData ~ */
 LeftMenuData::LeftMenuData(QObject *parent) : QObject(parent)
 {
+	m_getUsbTimer = new QTimer(this);
+    m_getUsbTimer->setInterval(500);
+	m_getUsbTimer->setSingleShot(true);
+    connect(m_getUsbTimer, &QTimer::timeout, this, &LeftMenuData::slotLayoutTimerFinished);
 	Solid::DeviceNotifier *notifier = Solid::DeviceNotifier::instance();
 
     connect(notifier, &Solid::DeviceNotifier::deviceAdded, [this](const QString &device) {
-		emit this->deviceAdded(getUSBDevice());
+    	Solid::Device deviceItem(device);
+        if (deviceItem.isDeviceInterface(Solid::DeviceInterface::StorageDrive)){
+			requestGetUsbDevice(true);
+		}
      });
 
      connect(notifier, &Solid::DeviceNotifier::deviceRemoved, [this](const QString &device) {
-		emit this->deviceRemoved(getUSBDevice());
+		 	requestGetUsbDevice(false);	   
      });
 }
-
-QStringList LeftMenuData::getUSBDevice()
+void LeftMenuData::requestGetUsbDevice(bool isAdd)
 {
-	QTime dieTime = QTime::currentTime().addMSecs(500);//拿到通知以后 如果马上去获取的话 并没有挂载成功 所以需要等待500ms
-	while( QTime::currentTime() < dieTime )
-	{
-		QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+	isAddUsbDevice = isAdd;
+	if (m_getUsbTimer->isActive()) {
+		m_getUsbTimer->stop();
 	}
-
-	QStringList res;
-	QString usbPath = "/media/jingos";
-	QDir tmpDir(usbPath);
-	foreach(QString subDir, tmpDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot))
-    {
-		QString usbDir = "file://" + usbPath + QDir::separator() + subDir;
-		res << usbDir;
-    }
-	return res;
+	m_getUsbTimer->start();	
 }
 
+void LeftMenuData::slotLayoutTimerFinished()
+{
+	if (isAddUsbDevice) {
+    	emit this->deviceAdded(getUSBDevice(false));
+	} else {
+		emit this->deviceRemoved(getUSBDevice(false));
+	}
+}
+
+bool LeftMenuData::supportEjectDevice(QString path)
+{
+    qDebug()<< Q_FUNC_INFO << " DEVICE PATH:" << path;
+	
+	if (isDeviceValid(path)) {
+		return true;
+	}
+
+    if (path.startsWith("file://")) {
+        path = path.mid(7);
+	}
+    QString udiStr = path;
+    Solid::Device device = Solid::Device::storageAccessFromPath(udiStr);
+	Solid::StorageDrive* drive = device.as<Solid::StorageDrive>();
+    if (!drive) {
+        drive = device.parent().as<Solid::StorageDrive>();
+    }
+
+    bool hotPluggable = false;
+    bool removable = false;
+    if (drive) {
+        hotPluggable = drive->isHotpluggable();
+        removable = drive->isRemovable();
+    }
+	return removable || hotPluggable;
+}
+
+bool LeftMenuData::isDeviceValid(QString path)
+{
+	if (path.startsWith("file://")) {
+			path = path.mid(7);
+		}
+    QString udiStr = path;
+    Solid::Device device = Solid::Device::storageAccessFromPath(udiStr);
+	bool isDeviceValid = device.isValid();
+    qDebug()<< Q_FUNC_INFO << " DEVICE VAILD:" << isDeviceValid;
+	return isDeviceValid;
+}
+
+void LeftMenuData::ejectDevice(QString path)
+{
+    qDebug()<< Q_FUNC_INFO << " EJECT PATH:" << path;
+
+    if (path.startsWith("file://")) {
+        path = path.mid(7);
+	}
+    QString udiStr = path;
+    Solid::Device deviceItem = Solid::Device::storageAccessFromPath(udiStr);
+	if (deviceItem.is<Solid::OpticalDisc>()) {
+		Solid::OpticalDrive *drive = deviceItem.as<Solid::OpticalDrive>();
+        if (!drive) {
+			drive = deviceItem.parent().as<Solid::OpticalDrive>();
+		}
+		if (drive) {
+			connect(drive, &Solid::OpticalDrive::ejectDone,
+						this, &LeftMenuData::slotStorageTearDownDone);
+			drive->eject();
+		}
+	}  else if (deviceItem.is<Solid::StorageAccess>()) {
+		Solid::StorageAccess *access = deviceItem.as<Solid::StorageAccess>();
+		if (access && access->isAccessible()) {
+			connect(access, &Solid::StorageAccess::teardownDone ,
+						this, &LeftMenuData::slotStorageTearDownDone);
+			access->teardown();
+		}
+	}
+}
+
+void LeftMenuData::slotStorageTearDownDone(Solid::ErrorType error, const QVariant& errorData)
+{
+    qWarning()<< Q_FUNC_INFO << " ERRORDATA " << errorData << " error:" << error;
+	if (error && errorData.isValid()) {
+		//fail
+		emit this->tipMessage(i18n("USB device eject fail"));
+	} else {
+		//suc
+		requestGetUsbDevice(false);
+		emit this->tipMessage(i18n("USB device eject success"));
+	}
+}
+
+QStringList LeftMenuData::getUSBDevice(bool isFirst)
+{
+    QStringList res;
+    QString usbPath = "/media/" + getUserName();
+    QDir tmpDir(usbPath);
+    foreach(QString subDir, tmpDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot))
+    {
+        QString usbDir = "file://" + usbPath + QDir::separator() + subDir;
+		bool isValid = isDeviceValid(usbDir);
+		if (!isValid) {
+			continue;
+		}
+        res << usbDir;
+    }
+    return res;
+}
+
+bool LeftMenuData::isDefaultFile(QString path)
+{
+    return m_defaultPaths.contains(path);
+}
 
 QString LeftMenuData::getUserName()
 {
@@ -87,6 +195,15 @@ QString LeftMenuData::getHomePath()
 
 QString LeftMenuData::getDownloadsPath()
 {
+    QString downloadPath = FMH::DownloadsPath;
+    if (downloadPath.startsWith("file://")) {
+       downloadPath = downloadPath.mid(7);
+    }
+    QDir downloadDir(downloadPath);
+    bool isExists = downloadDir.exists();
+    if(!isExists){
+        bool isMkPath = downloadDir.mkpath(downloadPath);
+    }
 	return FMH::DownloadsPath;
 }
 
@@ -103,7 +220,15 @@ QString LeftMenuData::getTrashPath()
 void LeftMenuData::restoreFromTrash(const QList<QUrl> &urls)
 {
 	auto job = KIO::restoreFromTrash(urls, KIO::HideProgressInfo);
-	job->start();	
+	QObject::connect(job, &KJob::result, [=] (KJob *job) {
+		if (job->error()) {
+			QString errorContent = job->errorString();
+			emit this->dialogMessage(errorContent);
+        } else {
+            emit this->trashFinishChaned(true);
+        }
+    });
+    job->exec();
 }
 
 QString LeftMenuData::createDir(const QUrl &path, const QString &name)
@@ -115,14 +240,7 @@ QString LeftMenuData::createDir(const QUrl &path, const QString &name)
 	int count = 1;
 	while(dir.exists(folderName))
 	{
-		if(count == 10)
-		{
-			folderName = path.toString() + "/" + "Are U Crazy?";
-			folderName.replace(QString("file://"), QString(""));
-		}else
-		{
-			folderName = dir_str + QString::number(count);
-		}
+        folderName = dir_str + QString::number(count);
 		count++;
 	}
 	dir.mkpath(folderName);
@@ -156,14 +274,14 @@ void LeftMenuData::addFolderToCollection(const QString url, const bool justRemov
 {
 	if(FMStatic::urlTagExists(url, "collection_jingos"))
 	{
-		FMStatic::removeTagToUrl("collection_jingos", url);//删除
+        FMStatic::removeTagToUrl("collection_jingos", url);
 		if(needRefresh)
 		{
 			emit this->removeCollection(url);
 		}
 	}else if(!justRemove)
 	{
-		FMStatic::addTagToUrl("collection_jingos", url);//增加
+        FMStatic::addTagToUrl("collection_jingos", url);
 		if(needRefresh)
 		{
 			emit this->addCollection(url);
@@ -187,29 +305,16 @@ QVariantList LeftMenuData::getCollectionList()
 {
 	QVariantList res;
 	FMH::MODEL_LIST collectionList = FMStatic::getTagContent("collection_jingos");
-	//排序start
-	std::sort(collectionList.begin(), collectionList.end(), [](const FMH::MODEL &e1, const FMH::MODEL &e2) -> bool {
+    std::sort(collectionList.begin(), collectionList.end(), [](const FMH::MODEL &e1, const FMH::MODEL &e2) -> bool {
 
-                const auto str1 = QString(e1[FMH::MODEL_KEY::LABEL]).toLower();
-                const auto str2 = QString(e2[FMH::MODEL_KEY::LABEL]).toLower();
-
-                // if(sortOrder == Qt::AscendingOrder)
-                // {
-                     if (str1 < str2)
-                    {
-                        return true;
-                    }
-                // }else
-                // {
-                //      if (str1 > str2)
-                //     {
-                //         return true;
-                //     }
-                // }
-				return false;
-        });
-	//排序end
-
+        const auto str1 = QString(e1[FMH::MODEL_KEY::LABEL]).toLower();
+        const auto str2 = QString(e2[FMH::MODEL_KEY::LABEL]).toLower();
+        if (str1 < str2)
+        {
+            return true;
+        }
+        return false;
+    });
 
 	for(const auto &item : collectionList)
 	{
@@ -223,7 +328,6 @@ quint64 LeftMenuData::getDirSizeReal(const QString &filePath)
     QDir tmpDir(filePath);
     quint64 size = 0;
 
-    /*获取文件列表  统计文件大小*/
     foreach(QFileInfo fileInfo, tmpDir.entryInfoList(QDir::Files))
     {
         size += fileInfo.size();
@@ -233,10 +337,9 @@ quint64 LeftMenuData::getDirSizeReal(const QString &filePath)
 		}
     }
 
-    /*获取文件夹  并且过滤掉.和..文件夹 统计各个文件夹的文件大小 */
     foreach(QString subDir, tmpDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot))
     {
-        size += getDirSizeReal(filePath + QDir::separator() + subDir); //递归进行  统计所有子目录
+        size += getDirSizeReal(filePath + QDir::separator() + subDir);
 		sizeOfResult += size;
 		if(!this->isEmit)
 		{
@@ -284,13 +387,17 @@ QString LeftMenuData::getVideoPreview(const QUrl &url)
 {
 	auto path = url.toString();
 	int index = path.lastIndexOf(".");
-	QString newPath = path.mid(0, index);//path/name
+    QString newPath = path.mid(0, index);
 	index = newPath.lastIndexOf("/");
-	QString startPath = newPath.mid(0, index + 1);//path/
-	QString endPath = newPath.mid(index + 1, newPath.length());//name
+    QString startPath = newPath.mid(0, index + 1);
+    QString endPath = newPath.mid(index + 1, newPath.length());
 	path = startPath + "." + endPath + ".jpg";
-
-	QFutureWatcher<quint64> *watcher = new QFutureWatcher<quint64>;
+    QFile file(path.mid(7));
+    if(file.exists())
+    {
+        return path;
+    }
+    QFutureWatcher<quint64> *watcher = new QFutureWatcher<quint64>;
     connect(watcher, &QFutureWatcher<quint64>::finished, [&, watcher]()
     {
         watcher->deleteLater();
@@ -298,28 +405,28 @@ QString LeftMenuData::getVideoPreview(const QUrl &url)
 
     const auto func = [=]() -> quint64
     {
-		QFile file(path.mid(7));
-		if(file.exists())
-		{
-			return -1;
-		}
+        QFile file(path.mid(7));
+        if(file.exists())
+        {
+            return -1;
+        }
 
-		QStringList plugins;
-		plugins << KIO::PreviewJob::availablePlugins();
-		KFileItemList list;
-		list.append(KFileItem(url, QString(), 0));
-		KIO::PreviewJob *job = KIO::filePreview(list, QSize(256, 256), &plugins);
-		job->setIgnoreMaximumSize(true);
-		job->setScaleType(KIO::PreviewJob::ScaleType::Unscaled);
+        KFileItemList list;
+        list.append(KFileItem(url, QString(), 0));
+        KIO::PreviewJob *job = KIO::filePreview(list, QSize(256, 256),&plugins);
+        job->setIgnoreMaximumSize(true);
+        job->setScaleType(KIO::PreviewJob::ScaleType::Unscaled);
 		
-		QObject::connect(job, &KIO::PreviewJob::gotPreview, [=] (const KFileItem &item, const QPixmap &preview) {
-			preview.save(path.mid(7), "JPG");
-			emit this->refreshImageSource(path);
-		});
-		QObject::connect(job, &KIO::PreviewJob::failed, [=] (const KFileItem &item) {
-		});
-		job->exec();
-		return 0;
+        QObject::connect(job, &KIO::PreviewJob::gotPreview, [=] (const KFileItem &item, const QPixmap &preview) {
+            qDebug()<<Q_FUNC_INFO << " gotPreview:" << path;
+            preview.save(path.mid(7), "JPG");
+            emit this->refreshImageSource(path);
+        });
+        QObject::connect(job, &KIO::PreviewJob::failed, [=] (const KFileItem &item) {
+             qDebug()<<Q_FUNC_INFO << " failed:";
+        });
+        job->exec();
+        return 0;
     };
 
     QFuture<quint64> t1 = QtConcurrent::run(func);
@@ -334,14 +441,12 @@ const FMH::MODEL LeftMenuData::getFileInfoModel(const QUrl &path)
 	return model;
 }
 
-void LeftMenuData::addToTag(const QString url, const int index, const bool justAdd)//批量打tag的时候，会出现有tag和没有tag的文件都被认为是需要重新打tag。所以不进行移除
+void LeftMenuData::addToTag(const QString url, const int index, const bool justAdd)
 {
-	//每个文件有且只有一个tag0--7之间的tag，在添加新的tag时，如果有旧的，则进行移除
 	int tagIndex = isTagFile(url);
-	if(tagIndex != -1 && tagIndex != index)
-	{
+    if(tagIndex != -1 && tagIndex != index) {
 		QString tag = "tag" + QString::number(tagIndex) + "_jingos";
-		FMStatic::removeTagToUrl(tag, url);//删除
+        FMStatic::removeTagToUrl(tag, url);
 	}
 
 	QString tag = "tag" + QString::number(index) + "_jingos";
@@ -349,12 +454,24 @@ void LeftMenuData::addToTag(const QString url, const int index, const bool justA
 	{
 		if(!justAdd)
 		{
-			FMStatic::removeTagToUrl(tag, url);//删除
+            FMStatic::removeTagToUrl(tag, url);
 		}
-	}else
-	{
-		FMStatic::addTagToUrl(tag, url);//增加
+    } else {
+        FMStatic::addTagToUrl(tag, url);
 	}
+}
+
+void LeftMenuData::addToTags(const QList<QString> &urls, const int index)
+{
+    const QString tag = "tag" + QString::number(index) + "_jingos";
+    removeToTags(urls,index);
+    FMStatic::addTags(tag, urls);
+}
+
+void LeftMenuData::removeToTags(const QList<QString> &urls, const int index)
+{
+    QString tag = "tag" + QString::number(index) + "_jingos";
+    FMStatic::removeTags(tag, urls);
 }
 
 int LeftMenuData::isTagFile(const QString url)
@@ -372,6 +489,11 @@ int LeftMenuData::isTagFile(const QString url)
 	return index;
 }
 
+void LeftMenuData::updateTagUrl()
+{
+    FMStatic::updateTagUrl();
+}
+
 void LeftMenuData::removeSth(const QString url)
 {
 	QProcess wtfProcess(this);
@@ -385,4 +507,25 @@ void LeftMenuData::killMedia()
     QString kill = "killall -9 media";
     QProcess process(this);
     process.execute(kill);
+}
+
+bool LeftMenuData::is24HourFormat()
+{
+    KSharedConfig::Ptr  m_localeConfig = KSharedConfig::openConfig(QStringLiteral("kdeglobals"), KConfig::SimpleConfig);
+    KConfigGroup m_localeSettings = KConfigGroup(m_localeConfig, "Locale");
+
+    QString timeFormat = m_localeSettings.readEntry("TimeFormat", QStringLiteral("FORMAT24H"));
+    return (timeFormat.lastIndexOf("ap") == -1) ;
+}
+
+void LeftMenuData::moveToTrash(const QList<QUrl> &urls)
+{
+    auto job = KIO::trash(urls);
+    QObject::connect(job, &KJob::result, [=] (KJob *job) {
+        if (job->error()) {
+            QString errorContent = job->errorString();
+            emit this->tipMessage(errorContent);
+        }
+    });
+    job->start();
 }

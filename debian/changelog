@@ -1,0 +1,17 @@
+index (0.0.1) focal; urgency=medium
+
+  * Format version
+
+ -- JingOS CI <jingos@jingos.com>  Fri, 19 Nov 2021 15:36:45 +0800
+
+index (0+git20181020-1) UNRELEASED; urgency=medium
+
+  * New snapshot
+
+ -- Jonah Brüchert <jbb@kaidan.im>  Sat, 20 Oct 2018 16:41:23 +0200
+
+index (0+git20180905-1) unstable; urgency=medium
+
+  * Initial release
+
+ -- Jonah Brüchert <jbb@kaidan.im>  Wed, 05 Sep 2018 14:37:52 +0200

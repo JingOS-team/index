@@ -1,5 +1,6 @@
 // Copyright 2018-2020 Camilo Higuita <milo.h@aol.com>
 // Copyright 2018-2020 Nitrux Latinoamericana S.C.
+//           2021      Zhang He Gang <zhanghegang@jingos.com>
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -19,17 +20,29 @@ Index::Index(QObject *parent)
 {
 }
 
+Index::Index(JApplicationQt *japp)
+    : m_japp(japp)
+{
+}
+
 /* to be called to launch index with opening different paths */
 void Index::openPaths(const QStringList &paths)
 {
     emit this->openPath(std::accumulate(paths.constBegin(), paths.constEnd(), QStringList(), [](QStringList &list, const QString &path) -> QStringList {
-        const auto url = QUrl::fromUserInput(path);
+        auto url = QUrl::fromUserInput(path);
         if (url.isLocalFile()) {
             const QFileInfo file(url.toLocalFile());
-            if (file.isDir())
-                list << url.toString();
-            else
+            if (file.isDir()){
+                QString urlStr =  url.toString();
+                bool isEnd = urlStr.endsWith("/.");
+                if(isEnd){
+                    list << urlStr.left(urlStr.length() - 2);
+                }else {
+                    list << url.toString();
+                }
+            } else{
                 list << QUrl::fromLocalFile(file.dir().absolutePath()).toString();
+            }
         } else
             list << url.toString();
 
@@ -50,4 +63,11 @@ void Index::openTerminal(const QUrl &url)
 #else
     Q_UNUSED(url)
 #endif
+}
+
+void Index::setEnableBackground(bool enable)
+{
+    // if(m_japp){
+    //     m_japp -> enableBackgroud(enable);
+    // }
 }

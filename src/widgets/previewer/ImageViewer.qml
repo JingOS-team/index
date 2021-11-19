@@ -1,10 +1,9 @@
 /*
- * SPDX-FileCopyrightText: (C) 2015 Vishesh Handa <vhanda@kde.org>
- * SPDX-FileCopyrightText: (C) 2017 Atul Sharma <atulsharma406@gmail.com>
- * SPDX-FileCopyrightText: (C) 2017 Marco Martin <mart@kde.org>
- *                             2021 Wang Rui <wangrui@jingos.com>
+ * Copyright (C) 2021 Beijing Jingling Information System Technology Co., Ltd. All rights reserved.
  *
- * SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+ * Authors:
+ * Zhang He Gang <zhanghegang@jingos.com>
+ *
  */
 import QtQuick 2.12
 import QtQuick.Window 2.2
@@ -118,7 +117,7 @@ Rectangle{
     {
         id: myheader
         width: parent.width
-        height: 60
+        height: 60 * appScaleSize
         visible: true
 
         background: Rectangle {
@@ -137,8 +136,8 @@ Rectangle{
 
     Kirigami.JIconButton{
         id: leftArrow
-        width: 30 + 10
-        height: 30 + 10
+        width: (30 + 10) * appScaleSize
+        height: width
         source: "qrc:/assets/leftarrow.png"
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: parent.left
@@ -166,8 +165,8 @@ Rectangle{
 
     Kirigami.JIconButton{
         id: rightArrow
-        width: 30 + 10
-        height: 30 + 10
+        width: (30 + 10) * appScaleSize
+        height: width
         source: "qrc:/assets/rightarrow.png"
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right

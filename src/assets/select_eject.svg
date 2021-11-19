@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32px" height="32px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Music, Audio/Play, Next</title>
+    <g id="页面-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="文件管理器-usb弹出" transform="translate(-855.000000, -756.000000)">
+            <g id="Music,-Audio/Play,-Next" transform="translate(871.000000, 772.000000) rotate(-90.000000) translate(-871.000000, -772.000000) translate(855.000000, 756.000000)">
+                <g id="Group" transform="translate(0.000000, 0.000000)">
+                    <g transform="translate(8.000000, 9.000000)" id="Path" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                        <line x1="0.666666669" y1="0" x2="0.666666669" y2="14.0000001"></line>
+                        <path d="M15.2333334,5.82800005 L6.78133337,0.545333365 C5.86133337,-0.0293333043 4.6666667,0.632000032 4.6666667,1.71733337 L4.6666667,12.2813334 C4.6666667,13.3666668 5.86133337,14.0293334 6.78133337,13.4533334 L15.2320001,8.17066673 C16.1000001,7.63066673 16.1000001,6.36933339 15.2333334,5.82800005 L15.2333334,5.82800005 Z"></path>
+                    </g>
+                    <polygon id="Path" points="0 0 32.0000001 0 32.0000001 32.0000001 0 32.0000001"></polygon>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

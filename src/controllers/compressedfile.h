@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2021 Beijing Jingling Information System Technology Co., Ltd. All rights reserved.
+ *
+ * Authors:
+ * Zhang He Gang <zhanghegang@jingos.com>
+ *
+ */
 #ifndef COMPRESSEDFILE_H
 #define COMPRESSEDFILE_H
 
@@ -24,6 +31,8 @@ class CompressedFile : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QUrl url READ url WRITE setUrl NOTIFY urlChanged)
+    Q_PROPERTY(bool isDecompress READ isDecompress NOTIFY decompressChanged)
+    Q_PROPERTY(bool isCompress READ isCompress NOTIFY compressChanged)
     Q_PROPERTY(CompressedFileModel *model READ model CONSTANT FINAL)
 
 public:
@@ -32,6 +41,10 @@ public:
 
     void setUrl(const QUrl &url);
     QUrl url() const;
+    bool isDecompress();
+    void setDecompress(bool isDecompress);
+    bool isCompress();
+    void setCompress(bool isCompress);
 
     CompressedFileModel *model() const;
 
@@ -40,18 +53,23 @@ public:
 private:
     QUrl m_url;
     CompressedFileModel *m_model;
+    bool m_decompressed = false;
+    bool m_compressed = false;
 
 public slots:
     void extract(const QUrl &where, const QString &directory = QString());
     bool compress(const QVariantList &files, const QUrl &where, const QString &fileName, const int &compressTypeSelected);
 
-    void extractWithThread(const QUrl &where, const QString &directory = QString());
+    void extractWithThread(const QUrl &where, const QString &directory = QString(),const QUrl &archUrl = QString());
     bool compressWithThread(const QVariantList &files, const QUrl &where, const QString &fileName, const int &compressTypeSelected);
 
 signals:
     void urlChanged();
     void finishZip(QString filePath);
     void startZip(QString filePath);
+    void decompressChanged();
+    void compressChanged();
+    void tipMessage(QString messageType);
 };
 
 #endif // COMPRESSEDFILE_H

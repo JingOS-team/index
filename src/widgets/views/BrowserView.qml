@@ -1,8 +1,8 @@
+
 // Copyright 2018-2020 Camilo Higuita <milo.h@aol.com>
 // Copyright 2018-2020 Nitrux Latinoamericana S.C.
-//
+//           2021      Zhang He Gang <zhanghegang@jingos.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
-
 import QtQuick 2.13
 import QtQuick.Controls 2.13
 import QtQuick.Layouts 1.3
@@ -15,63 +15,51 @@ import org.kde.mauikit 1.3 as Maui
 
 import org.maui.index 1.0 as Index
 
-ColumnLayout
-{
+ColumnLayout {
     id: control
     spacing: 0
-
-    // property alias selectionBar: _selectionBar
-    property alias currentTabIndex : _browserList.currentIndex
-    property alias currentTab : _browserList.currentItem
+    property alias currentTabIndex: _browserList.currentIndex
+    property alias currentTab: _browserList.currentItem
     property alias viewTypeGroup: _viewTypeGroup
-    property alias browserList : _browserList
+    property alias browserList: _browserList
 
-    Maui.TabBar
-    {
+    Maui.TabBar {
         id: tabsBar
         visible: _browserList.count > 1
         Layout.fillWidth: true
         Layout.preferredHeight: tabsBar.implicitHeight
         position: TabBar.Header
-        currentIndex : _browserList.currentIndex
+        currentIndex: _browserList.currentIndex
         onNewTabClicked: root.openTab(currentPath)
-        Keys.onPressed:
-        {
-            if(event.key == Qt.Key_Return)
-            {
+        Keys.onPressed: {
+            if (event.key == Qt.Key_Return) {
                 _browserList.currentIndex = currentIndex
             }
 
-            if(event.key == Qt.Key_Down)
-            {
+            if (event.key == Qt.Key_Down) {
                 currentBrowser.currentView.forceActiveFocus()
             }
         }
 
-        Repeater
-        {
+        Repeater {
             id: _repeater
             model: tabsObjectModel.count
 
-            Maui.TabButton
-            {
+            Maui.TabButton {
                 id: _tabButton
                 implicitHeight: tabsBar.implicitHeight
-                implicitWidth: Math.max(parent.width / _repeater.count, 120)
+                implicitWidth: Math.max(parent.width / _repeater.count,
+                                        120 * appScaleSize)
                 checked: index === _browserList.currentIndex
-//                template.iconSource: "folder"
-//                template.iconSizeHint: 16
                 text: tabsObjectModel.get(index).title
 
-                onClicked:
-                {
+                onClicked: {
                     _browserList.currentIndex = index
                 }
 
                 onCloseClicked: closeTab(index)
 
-                DropArea
-                {
+                DropArea {
                     id: _dropArea
                     anchors.fill: parent
                     onEntered: _browserList.currentIndex = index
@@ -80,8 +68,7 @@ ColumnLayout
         }
     }
 
-    Maui.Page
-    {
+    Maui.Page {
         Layout.fillHeight: true
         Layout.fillWidth: true
         altHeader: Kirigami.Settings.isMobile
@@ -90,34 +77,33 @@ ColumnLayout
         floatingHeader: false
 
         headBar.visible: !currentTab.currentItem.previewerVisible
-        headBar.rightContent:[
+        headBar.rightContent: [
 
-            ToolButton
-            {
-                visible: currentTab && currentTab.currentItem ? currentTab.currentItem.supportsTerminal : false
+            ToolButton {
+                visible: currentTab
+                         && currentTab.currentItem ? currentTab.currentItem.supportsTerminal : false
                 icon.name: "utilities-terminal"
                 onClicked: currentTab.currentItem.toogleTerminal()
-                checked : currentTab && currentBrowser ? currentTab.currentItem.terminalVisible : false
+                checked: currentTab
+                         && currentBrowser ? currentTab.currentItem.terminalVisible : false
                 checkable: true
             },
 
-            Maui.ToolButtonMenu
-            {
+            Maui.ToolButtonMenu {
                 visible: !sortSettings.globalSorting
                 icon.name: "view-sort"
 
-                MenuItem
-                {
+                MenuItem {
                     text: i18n("Show Folders First")
                     checked: currentBrowser.settings.foldersFirst
                     checkable: true
-                    onTriggered: currentBrowser.settings.foldersFirst = !currentBrowser.settings.foldersFirst
+                    onTriggered: currentBrowser.settings.foldersFirst
+                                 = !currentBrowser.settings.foldersFirst
                 }
 
                 MenuSeparator {}
 
-                MenuItem
-                {
+                MenuItem {
                     text: i18n("Type")
                     checked: currentBrowser.settings.sortBy === Maui.FMList.MIME
                     checkable: true
@@ -125,17 +111,15 @@ ColumnLayout
                     autoExclusive: true
                 }
 
-                MenuItem
-                {
+                MenuItem {
                     text: i18n("Date")
-                    checked:currentBrowser.settings.sortBy === Maui.FMList.DATE
+                    checked: currentBrowser.settings.sortBy === Maui.FMList.DATE
                     checkable: true
                     onTriggered: currentBrowser.settings.sortBy = Maui.FMList.DATE
                     autoExclusive: true
                 }
 
-                MenuItem
-                {
+                MenuItem {
                     text: i18n("Modified")
                     checkable: true
                     checked: currentBrowser.settings.sortBy === Maui.FMList.MODIFIED
@@ -143,8 +127,7 @@ ColumnLayout
                     autoExclusive: true
                 }
 
-                MenuItem
-                {
+                MenuItem {
                     text: i18n("Size")
                     checkable: true
                     checked: currentBrowser.settings.sortBy === Maui.FMList.SIZE
@@ -152,8 +135,7 @@ ColumnLayout
                     autoExclusive: true
                 }
 
-                MenuItem
-                {
+                MenuItem {
                     text: i18n("Name")
                     checkable: true
                     checked: currentBrowser.settings.sortBy === Maui.FMList.LABEL
@@ -161,51 +143,49 @@ ColumnLayout
                     autoExclusive: true
                 }
 
-                MenuSeparator{}
+                MenuSeparator {}
 
-                MenuItem
-                {
+                MenuItem {
                     id: groupAction
                     text: i18n("Group")
                     checkable: true
                     checked: currentBrowser.settings.group
-                    onTriggered:
-                    {
+                    onTriggered: {
                         currentBrowser.settings.group = !currentBrowser.settings.group
                     }
                 }
             },
 
-            ToolButton
-            {
+            ToolButton {
                 visible: settings.supportSplit
-                icon.name: currentTab.orientation === Qt.Horizontal ? "view-split-left-right" : "view-split-top-bottom"
+                icon.name: currentTab.orientation
+                           === Qt.Horizontal ? "view-split-left-right" : "view-split-top-bottom"
                 checked: currentTab.count == 2
                 autoExclusive: true
                 onClicked: toogleSplitView()
             },
 
-            ToolButton
-            {
+            ToolButton {
                 icon.name: "edit-find"
                 checked: currentBrowser.headBar.visible
-                onClicked:
-                {
+                onClicked: {
                     currentBrowser.headBar.visible = !currentBrowser.headBar.visible
                 }
             },
 
-            ToolButton
-            {
+            ToolButton {
                 id: _optionsButton
                 icon.name: "overflow-menu"
-                enabled: root.currentBrowser && root.currentBrowser.currentFMList.pathType !== Maui.FMList.TAGS_PATH && root.currentBrowser.currentFMList.pathType !== Maui.FMList.TRASH_PATH && root.currentBrowser.currentFMList.pathType !== Maui.FMList.APPS_PATH
-                onClicked:
-                {
-                    if(currentBrowser.browserMenu.visible)
+                enabled: root.currentBrowser
+                         && root.currentBrowser.currentFMList.pathType !== Maui.FMList.TAGS_PATH
+                         && root.currentBrowser.currentFMList.pathType !== Maui.FMList.TRASH_PATH
+                         && root.currentBrowser.currentFMList.pathType !== Maui.FMList.APPS_PATH
+                onClicked: {
+                    if (currentBrowser.browserMenu.visible)
                         currentBrowser.browserMenu.close()
                     else
-                        currentBrowser.browserMenu.show(_optionsButton, 0, height)
+                        currentBrowser.browserMenu.show(_optionsButton,
+                                                        0, height)
                 }
                 checked: currentBrowser.browserMenu.visible
                 checkable: false
@@ -213,8 +193,7 @@ ColumnLayout
         ]
 
         headBar.farLeftContent: [
-            MouseArea
-            {
+            MouseArea {
                 id: _handle
                 visible: placesSidebar.position == 0 || placesSidebar.collapsed
                 Layout.preferredWidth: Maui.Style.iconSizes.big
@@ -229,90 +208,78 @@ ColumnLayout
                 ToolTip.visible: _handle.containsMouse || _handle.containsPress
                 ToolTip.text: i18n("Toogle SideBar")
 
-                Rectangle
-                {
+                Rectangle {
                     anchors.centerIn: parent
                     radius: 2
-                    height: 18
-                    width: 16
+                    height: 18 * appScaleSize
+                    width: 16 * appScaleSize
 
-                    color: _handle.containsMouse || _handle.containsPress  ?  Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                    color: _handle.containsMouse
+                           || _handle.containsPress ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
                     border.color: Qt.darker(color, 1.2)
 
-                    Rectangle
-                    {
+                    Rectangle {
                         radius: 1
-                        height: 10
-                        width: 3
+                        height: 10 * appScaleSize
+                        width: 3 * appScaleSize
 
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
-                        anchors.margins: 4
+                        anchors.margins: 4 * appScaleSize
 
-                        color: _handle.containsMouse || _handle.containsPress ?  Kirigami.Theme.highlightedTextColor : Kirigami.Theme.backgroundColor
+                        color: _handle.containsMouse
+                               || _handle.containsPress ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.backgroundColor
                     }
                 }
 
                 onClicked: placesSidebar.visible = !placesSidebar.visible
             }
-
-
         ]
 
         headBar.leftContent: [
 
-            Maui.ToolActions
-            {
+            Maui.ToolActions {
                 expanded: true
                 autoExclusive: false
                 checkable: false
 
-                Action
-                {
+                Action {
                     text: i18n("Previous")
                     icon.name: "go-previous"
-                    onTriggered : currentBrowser.goBack()
+                    onTriggered: currentBrowser.goBack()
                 }
 
-                Action
-                {
+                Action {
                     text: i18n("Next")
                     icon.name: "go-next"
                     onTriggered: currentBrowser.goNext()
                 }
             },
 
-            Maui.ToolActions
-            {
+            Maui.ToolActions {
                 id: _viewTypeGroup
                 autoExclusive: true
                 cyclic: true
                 expanded: headBar.width > Kirigami.Units.gridUnit * 32
 
-                Binding on currentIndex
-                {
+                Binding on currentIndex {
                     value: currentBrowser ? currentBrowser.settings.viewType : -1
-                    //                    restoreMode: Binding.RestoreBinding
                     delayed: true
                 }
 
-                //                    display: ToolButton.TextBesideIcon
-                onCurrentIndexChanged:
-                {
-                    if(currentBrowser)
+                onCurrentIndexChanged: {
+                    if (currentBrowser)
                     currentBrowser.settings.viewType = currentIndex
                     settings.viewType = currentIndex
                 }
 
-                Action
-                {
+                Action {
                     icon.name: "view-list-icons"
                     text: i18n("Grid")
                     shortcut: "Ctrl+G"
                 }
 
-                Action
-                {
+                Action {
                     icon.name: "view-list-details"
                     text: i18n("List")
                     shortcut: "Ctrl+L"
@@ -320,141 +287,7 @@ ColumnLayout
             }
         ]
 
-        // footer: Maui.SelectionBar
-        // {
-        //     id: _selectionBar
-
-        //     padding: Maui.Style.space.big
-        //     anchors.horizontalCenter: parent.horizontalCenter
-        //     width: Math.min(parent.width-(Maui.Style.space.medium*2), implicitWidth)
-        //     maxListHeight: _browserList.height - (Maui.Style.contentMargins*2)
-
-        //     onCountChanged:
-        //     {
-        //         if(_selectionBar.count < 1)
-        //         {
-        //             // root.selectionMode = false
-        //         }
-        //     }
-
-        //     onUrisDropped:
-        //     {
-        //         for(var i in uris)
-        //         {
-        //             if(!Maui.FM.fileExists(uris[i]))
-        //                 continue;
-
-        //             const item = Maui.FM.getFileInfo(uris[i])
-        //             _selectionBar.append(item.path, item)
-        //         }
-        //     }
-
-        //     onExitClicked: clear()
-
-        //     listDelegate: Maui.ListBrowserDelegate
-        //     {
-        //         isCurrentItem: false
-        //         Kirigami.Theme.inherit: true
-        //         width: ListView.view.width
-        //         height: Maui.Style.iconSizes.big + Maui.Style.space.big
-        //         imageSource: root.showThumbnails ? model.thumbnail : ""
-        //         iconSource: model.icon
-        //         label1.text: model.label
-        //         label2.text: model.path
-        //         label3.text: ""
-        //         label4.text: ""
-        //         checkable: true
-        //         checked: true
-        //         iconSizeHint: Maui.Style.iconSizes.big
-        //         onToggled: _selectionBar.removeAtIndex(index)
-        //         background: Item {}
-        //         onClicked:
-        //         {
-        //             _selectionBar.selectionList.currentIndex = index
-        //         }
-
-        //         onPressAndHold: removeAtIndex(index)
-        //     }
-
-        //     // Action //原有menu逻辑
-        //     // {
-        //     //     text: i18n("Open")
-        //     //     icon.name: "document-open"
-        //     //     onTriggered:
-        //     //     {
-        //     //         for(var i in selectionBar.uris)
-        //     //             currentBrowser.openFile(_selectionBar.uris[i])
-        //     //     }
-        //     // }
-
-        //     // Action
-        //     // {
-        //     //     text: i18n("Compress")
-        //     //     icon.name: "archive-insert"
-        //     //     onTriggered:
-        //     //     {
-        //     //         dialogLoader.sourceComponent= _compressDialogComponent
-        //     //         dialog.urls = selectionBar.uris
-        //     //         dialog.open()
-        //     //     }
-        //     // }
-
-        //     // Action
-        //     // {
-        //     //     text: i18n("Tags")
-        //     //     icon.name: "tag"
-        //     //     onTriggered:
-        //     //     {
-        //     //         tagFiles(_selectionBar.uris)
-        //     //     }
-        //     // }
-
-        //     // Action
-        //     // {
-        //     //     text: i18n("Share")
-        //     //     icon.name: "document-share"
-        //     //     onTriggered:
-        //     //     {
-        //     //         shareFiles(_selectionBar.uris)
-        //     //     }
-        //     // }
-
-        //     // Action
-        //     // {
-        //     //     text: i18n("Copy")
-        //     //     icon.name: "edit-copy"
-        //     //     onTriggered:
-        //     //     {
-        //     //         _selectionBar.animate()
-        //     //         currentBrowser.copy(_selectionBar.uris)
-        //     //     }
-        //     // }
-
-        //     // Action
-        //     // {
-        //     //     text: i18n("Cut")
-        //     //     icon.name: "edit-cut"
-        //     //     onTriggered:
-        //     //     {
-        //     //         _selectionBar.animate()
-        //     //         currentBrowser.cut(_selectionBar.uris)
-        //     //     }
-        //     // }
-
-        //     // Action
-        //     // {
-        //     //     text: i18n("Remove")
-        //     //     icon.name: "edit-delete"
-
-        //     //     onTriggered:
-        //     //     {
-        //     //         currentBrowser.remove(_selectionBar.uris)
-        //     //     }
-        //     // }
-        // }
-
-        ListView
-        {
+        ListView {
             id: _browserList
             anchors.fill: parent
 
@@ -464,7 +297,8 @@ ColumnLayout
             model: tabsObjectModel
             snapMode: ListView.SnapOneItem
             spacing: 0
-            interactive: Kirigami.Settings.hasTransientTouchInput && tabsObjectModel.count > 1
+            interactive: Kirigami.Settings.hasTransientTouchInput
+                         && tabsObjectModel.count > 1
             highlightFollowsCurrentItem: true
             highlightMoveDuration: 0
             highlightResizeDuration: 0
@@ -475,30 +309,25 @@ ColumnLayout
             highlightMoveVelocity: -1
             highlightResizeVelocity: -1
 
-            onMovementEnded: _browserList.currentIndex = indexAt(contentX, contentY)
+            onMovementEnded: _browserList.currentIndex = indexAt(contentX,
+                                                                 contentY)
             boundsBehavior: Flickable.StopAtBounds
 
-            onCurrentItemChanged:
-            {
-                if(currentBrowser)
-                {
+            onCurrentItemChanged: {
+                if (currentBrowser) {
                     currentBrowser.currentView.forceActiveFocus()
                 }
             }
 
-            DropArea
-            {
+            DropArea {
                 id: _dropArea
                 anchors.fill: parent
-                z: parent.z -2
-                onDropped:
-                {
+                z: parent.z - 2
+                onDropped: {
                     const urls = drop.urls
-                    for(var i in urls)
-                    {
+                    for (var i in urls) {
                         const item = Maui.FM.getFileInfo(urls[i])
-                        if(item.isdir == "true")
-                        {
+                        if (item.isdir == "true") {
                             control.openTab(urls[i])
                         }
                     }
@@ -507,8 +336,7 @@ ColumnLayout
         }
     }
 
-    ProgressBar
-    {
+    ProgressBar {
         id: _progressBar
         Layout.fillWidth: true
         Layout.alignment: Qt.AlignBottom

@@ -1,9 +1,10 @@
 /*
- * SPDX-FileCopyrightText: 2020 George Florea Bănuș <georgefb899@gmail.com>
+ * Copyright (C) 2021 Beijing Jingling Information System Technology Co., Ltd. All rights reserved.
  *
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * Authors:
+ * Zhang He Gang <zhanghegang@jingos.com>
+ *
  */
-
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
@@ -29,12 +30,12 @@ ToolBar {
     Kirigami.JIconButton
     {
         id: backImage
-        width: 22 + 10
+        width: (22 + 10) * appScaleSize
         height: width
         source: "qrc:/assets/image_back.png"
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: parent.left
-        anchors.leftMargin: 10
+        anchors.leftMargin: 10 * appScaleSize
         onClicked: {
             root.hideImageViewer()
         }
@@ -44,9 +45,9 @@ ToolBar {
         id:name
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: backImage.right
-        anchors.leftMargin: 8
+        anchors.leftMargin: 8 * appScaleSize
         text: currentname
-        font.pixelSize: 20
+        font.pixelSize: 20 * appFontSize
         style: Text.Gilroy
         color: 
         {
@@ -59,12 +60,12 @@ ToolBar {
     Kirigami.JIconButton
     {
         id: deleteImage
-        width: 22 + 10
+        width: (22 + 10) * appScaleSize
         height: width
         source: "qrc:/assets/image_delete.png"
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
-        anchors.rightMargin: 13
+        anchors.rightMargin: 13 * appScaleSize
         onClicked: {
             const item = root.currentBrowser.currentFMModel.get(root.imageIndex)
             currentBrowser.moveToTrash(item)
@@ -75,12 +76,12 @@ ToolBar {
     Kirigami.JIconButton
     {
         id: setWallPaperImage
-        width: 22 + 10
+        width: (22 + 10) * appScaleSize
         height: width
         source: "qrc:/assets/image_set_wallpaper.png"
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: deleteImage.left
-        anchors.rightMargin: 35
+        anchors.rightMargin: 35 * appScaleSize
         onClicked: {
             openWallpaperView(root.imageUrl)
         }

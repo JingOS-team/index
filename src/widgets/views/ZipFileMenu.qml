@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2021 Beijing Jingling Information System Technology Co., Ltd. All rights reserved.
+ *
+ * Authors:
+ * Zhang He Gang <zhanghegang@jingos.com>
+ *
+ */
 import QtQuick 2.9
 import QtQuick.Controls 2.3
 import QtQuick.Layouts 1.3
@@ -101,11 +108,11 @@ Kirigami.JPopupMenu  //一般文件的右键菜单 可以压缩文件
     
     Kirigami.JMenuSeparator 
     { 
-        width: parent.width * 2
-        height: 10
-        background:Rectangle{
-            color: "#2E3C3C43"
-        }
+//        width: parent.width * 2
+//        height: 10 * appScaleSize
+//        background:Rectangle{
+//            color: "#2E3C3C43"
+//        }
     }
 
     Action { //打开方式
@@ -158,11 +165,11 @@ Kirigami.JPopupMenu  //一般文件的右键菜单 可以压缩文件
     }
     Kirigami.JMenuSeparator 
     { 
-        width: parent.width * 2
-        height: 10
-        background:Rectangle{
-            color: "#2E3C3C43"
-        }
+//        width: parent.width * 2
+//        height: 10 * appScaleSize
+//        background:Rectangle{
+//            color: "#2E3C3C43"
+//        }
     }
     Action { 
         text: i18n("Info")
@@ -175,6 +182,7 @@ Kirigami.JPopupMenu  //一般文件的右键菜单 可以压缩文件
     Kirigami.JMenuSeparator { }
     Action { 
         text: i18n("Tags")
+        enabled:!control.item.path.toString().startsWith("file:///media")
         icon.source: "qrc:/assets/popupmenu/tags.png"
         onTriggered:
         {

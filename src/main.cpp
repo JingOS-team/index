@@ -1,6 +1,6 @@
 // Copyright 2018-2020 Camilo Higuita <milo.h@aol.com>
-// Copyright 2020 Wang Rui <wangrui@jingos.com>
 // Copyright 2018-2020 Nitrux Latinoamericana S.C.
+// Copyright 2021 Zhang He Gang <zhanghegang@jingos.com>
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <QCommandLineParser>
@@ -37,16 +37,22 @@
 #include "controllers/filepreviewer.h"
 
 #include "models/left_menu/leftmenudata.h"
+#include "models/ProcessModel.h"
 
 #include <KLocalizedString>
 #include <KLocalizedContext>
 
 #include <QtQml>
+#include <QDateTime>
+#include <KDBusService>
+
+#include <japplicationqt.h>
 
 #define INDEX_URI "org.maui.index"
 
 Q_DECL_EXPORT int main(int argc, char *argv[])
 {
+    qint64 startTime = QDateTime::currentMSecsSinceEpoch();
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps, true);
@@ -63,13 +69,19 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
 #else
     QApplication app(argc, argv);
 #endif
-
+    JApplicationQt japp;
+    japp.enableBackgroud(true);
+    bool backgroundStartUp = qEnvironmentVariableIsSet("BACKGROUNDSTARTUP");
+    QApplication::setQuitLockEnabled(!backgroundStartUp);
+    QObject::connect(&japp, &JApplicationQt::resume, [&backgroundStartUp]() {
+        backgroundStartUp = false;
+    });
     KLocalizedString::setApplicationDomain("filemanager");
     KLocalizedString::addDomainLocaleDir("filemanager", "/usr/share/local");
 
     app.setOrganizationName(QStringLiteral("Maui"));
-    // app.setWindowIcon(QIcon(":/index.png"));
     app.setWindowIcon(QIcon(":/zip.png"));
+    
     MauiApp::instance()->setHandleAccounts(false); // for now index can not handle cloud accounts
     MauiApp::instance()->setIconName("qrc:/assets/index_new.svg");
 
@@ -86,6 +98,8 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QCommandLineParser parser;
     parser.process(app);
 
+    KDBusService* service = new KDBusService(KDBusService::Unique | KDBusService::Replace, &app);
+
     about.setupCommandLine(&parser);
     about.processCommandLine(&parser);
 
@@ -97,11 +111,9 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
         paths = args;
     }
         
-    Index index;
+    Index index(&japp);
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));
-    // const QUrl url(QStringLiteral("qrc:/main1.qml"));
-    // const QUrl url(QStringLiteral("qrc:/main_bak.qml"));
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreated,
@@ -109,23 +121,32 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
         [url, paths, &index](QObject *obj, const QUrl &objUrl) {
             if (!obj && url == objUrl)
                 QCoreApplication::exit(-1);
-
             if (!paths.isEmpty())
                 index.openPaths(paths);
         },
         Qt::QueuedConnection);
 
     engine.rootContext()->setContextProperty("inx", &index);
+    engine.rootContext()->setContextProperty("japp", &japp);
+    engine.rootContext()->setContextProperty("realVisible", !backgroundStartUp);
+    QObject::connect(&japp, &JApplicationQt::resume, [&engine]() {
+        engine.rootContext()->setContextProperty("realVisible", true);
+    });
+    qmlRegisterSingletonType<ProcessModel>(INDEX_URI, 1, 0, "ProcessModel", [] (QQmlEngine *, QJSEngine *) -> QObject* {
+        return ProcessModel::instance();
+    });
     qmlRegisterType<CompressedFile>(INDEX_URI, 1, 0, "CompressedFile");
     qmlRegisterType<FilePreviewer>(INDEX_URI, 1, 0, "FilePreviewProvider");
     qmlRegisterType<LeftMenuData>(INDEX_URI, 1, 0, "LeftMenuData");
+    engine.rootContext()->setContextProperty("MainStartTime",startTime);
 
-
-    // engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
     KLocalizedContext *kc = new KLocalizedContext(&engine);
     kc->setTranslationDomain("filemanager");
     engine.rootContext()->setContextObject(kc);
     engine.load(url);
+    qint64 endTime = QDateTime::currentMSecsSinceEpoch();
+
+    FMStatic::updateTagUrl();
 
 #ifdef Q_OS_MACOS
 //        MAUIMacOS::removeTitlebarFromWindow();

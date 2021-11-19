@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2021 Beijing Jingling Information System Technology Co., Ltd. All rights reserved.
+ *
+ * Authors:
+ * Zhang He Gang <zhanghegang@jingos.com>
+ *
+ */
 import QtQuick 2.9
 import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
@@ -14,12 +21,11 @@ Maui.Editor
     Kirigami.Theme.backgroundColor: "transparent"
     anchors{
         left: parent.left
-        leftMargin: 80
+        leftMargin: 80 * appScaleSize
         right: parent.right
-        rightMargin: 80
+        rightMargin: 80 * appScaleSize
     }
 
-    //    Component.onCompleted: document.load(currentUrl)
     fileUrl: currentUrl
     Connections
     {
